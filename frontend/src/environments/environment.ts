@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
   // Point this at the deployed FastAPI backend.
-  apiUrl: 'http://localhost:8000/api',
+  apiUrl: 'https://learning-e-rxmk.onrender.com/api',
 };
