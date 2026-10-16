@@ -1,0 +1,129 @@
+<app-page-header
+  eyebrow="Administration"
+  title="Users"
+  subtitle="Search accounts, change roles and control access."
+/>
+
+<form class="toolbar" id="user-filters" name="user-filters" role="search" aria-label="Filter users" [formGroup]="filters">
+  <div class="input-icon grow">
+    <app-icon name="search" />
+    <label class="visually-hidden" for="user-search">Search users</label>
+    <input
+      class="input"
+      id="user-search"
+      name="q"
+      type="search"
+      formControlName="q"
+      placeholder="Search by name or email…"
+      autocomplete="off"
+      maxlength="100"
+    />
+  </div>
+  <label class="visually-hidden" for="user-role-filter">Filter by role</label>
+  <select class="select" id="user-role-filter" name="role" formControlName="role" title="Filter by role">
+    <option value="">All roles</option>
+    @for (role of roles; track role) {
+      <option [value]="role">{{ role | titlecase }}s</option>
+    }
+  </select>
+  <label class="visually-hidden" for="user-status-filter">Filter by status</label>
+  <select class="select" id="user-status-filter" name="is_active" formControlName="is_active" title="Filter by status">
+    <option value="">Any status</option>
+    <option value="true">Active</option>
+    <option value="false">Inactive</option>
+  </select>
+</form>
+
+@if (loading() && !result()) {
+  <app-loading label="Loading users…" />
+} @else if (result(); as page) {
+  @if (page.items.length) {
+    <div class="table-wrapper">
+      <table class="table" id="users-table">
+        <caption class="visually-hidden">Users, {{ page.total }} in total</caption>
+        <thead>
+          <tr>
+            <th scope="col">User</th>
+            <th scope="col">Role</th>
+            <th scope="col">Status</th>
+            <th scope="col">Joined</th>
+            <th scope="col" class="numeric">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of page.items; track user.id) {
+            <tr [id]="'user-row-' + user.id">
+              <td>
+                <div class="cell-main">
+                  <app-avatar [name]="user.full_name" [url]="user.avatar_url" size="sm" />
+                  <div>
+                    <strong>
+                      {{ user.full_name }}
+                      @if (isSelf(user)) {
+                        <span class="badge primary">You</span>
+                      }
+                    </strong>
+                    <small>{{ user.email }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <label class="visually-hidden" [for]="'user-role-' + user.id">Role of {{ user.full_name }}</label>
+                <select
+                  class="select role-select"
+                  [id]="'user-role-' + user.id"
+                  [name]="'role_' + user.id"
+                  [value]="user.role"
+                  [disabled]="isSelf(user)"
+                  [title]="isSelf(user) ? 'You cannot change your own role' : 'Change role'"
+                  #roleSelect
+                  (change)="changeRole(user, roleSelect.value)"
+                >
+                  @for (role of roles; track role) {
+                    <option [value]="role" [selected]="role === user.role">{{ role | titlecase }}</option>
+                  }
+                </select>
+              </td>
+              <td>
+                <span class="badge" [class.success]="user.is_active" [class.danger]="!user.is_active">
+                  <app-icon [name]="user.is_active ? 'check_circle' : 'block'" />
+                  {{ user.is_active ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="nowrap">{{ user.created_at | date: 'mediumDate' }}</td>
+              <td>
+                <div class="actions">
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    [id]="'toggle-active-' + user.id"
+                    [disabled]="isSelf(user)"
+                    [title]="user.is_active ? 'Deactivate account' : 'Activate account'"
+                    [attr.aria-label]="(user.is_active ? 'Deactivate ' : 'Activate ') + user.full_name"
+                    (click)="toggleActive(user)"
+                  >
+                    <app-icon [name]="user.is_active ? 'person_off' : 'person_check'" />
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn danger"
+                    [id]="'delete-user-' + user.id"
+                    [disabled]="isSelf(user)"
+                    title="Delete user"
+                    [attr.aria-label]="'Delete ' + user.full_name"
+                    (click)="remove(user)"
+                  >
+                    <app-icon name="delete" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pagination [page]="page.page" [pages]="page.pages" (pageChange)="changePage($event)" />
+  } @else {
+    <app-empty-state icon="person_search" title="No users found" message="Try another search or filter." />
+  }
+}

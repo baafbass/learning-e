@@ -1,0 +1,105 @@
+<app-page-header eyebrow="Administration" title="Dashboard" subtitle="An overview of activity across LearnHub.">
+  <a class="btn" routerLink="/admin/users" id="dashboard-users-link"><app-icon name="manage_accounts" /> Manage users</a>
+  <a class="btn btn-primary" routerLink="/teach/courses/new" id="dashboard-new-course-link">
+    <app-icon name="add" /> New course
+  </a>
+</app-page-header>
+
+@if (stats(); as stats) {
+  <div class="grid grid-stats mb">
+    <app-stat-card icon="school" label="Students" [value]="stats.students" />
+    <app-stat-card icon="co_present" label="Instructors" [value]="stats.instructors" tone="accent" />
+    <app-stat-card
+      icon="library_books"
+      label="Courses"
+      [value]="stats.courses"
+      [hint]="stats.published_courses + ' published · ' + stats.draft_courses + ' drafts'"
+      tone="warning"
+    />
+    <app-stat-card
+      icon="how_to_reg"
+      label="Enrollments"
+      [value]="stats.enrollments"
+      [hint]="stats.enrollments_completed + ' completed'"
+      tone="success"
+    />
+    <app-stat-card icon="task_alt" label="Completion rate" [value]="stats.completion_rate + '%'" tone="success" />
+    <app-stat-card
+      icon="grade"
+      label="Average grade"
+      [value]="stats.average_grade !== null ? stats.average_grade + '%' : '—'"
+      tone="accent"
+    />
+    <app-stat-card icon="category" label="Categories" [value]="stats.categories" />
+    <app-stat-card
+      icon="mark_email_unread"
+      label="Unread messages"
+      [value]="stats.unread_messages"
+      [tone]="stats.unread_messages ? 'danger' : 'primary'"
+    />
+  </div>
+
+  <div class="panels">
+    <section class="card" aria-labelledby="enrollment-status-title">
+      <header class="card-header"><h2 id="enrollment-status-title">Enrollment status</h2></header>
+      <div class="card-body">
+        <div
+          class="stacked-bar"
+          role="img"
+          [attr.aria-label]="inProgressShare() + '% in progress, ' + (100 - inProgressShare()) + '% completed'"
+        >
+          <span class="in-progress" [style.width.%]="inProgressShare()"></span>
+          <span class="completed" [style.width.%]="stats.enrollments ? 100 - inProgressShare() : 0"></span>
+        </div>
+        <ul class="legend">
+          <li><span class="dot in-progress"></span> In progress <strong>{{ stats.enrollments_in_progress }}</strong></li>
+          <li><span class="dot completed"></span> Completed <strong>{{ stats.enrollments_completed }}</strong></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="top-courses-title">
+      <header class="card-header">
+        <h2 id="top-courses-title">Most popular courses</h2>
+        <a routerLink="/admin/courses" id="dashboard-courses-link" class="text-sm">View all</a>
+      </header>
+      <ol class="card-body top-courses">
+        @for (course of stats.top_courses; track course.id) {
+          <li>
+            <div class="flex justify-between gap-sm">
+              <a [routerLink]="['/courses', course.id]" [id]="'top-course-' + course.id">{{ course.title }}</a>
+              <strong class="nowrap">{{ course.enrollment_count }}</strong>
+            </div>
+            <small class="muted">{{ course.instructor_name }} · {{ course.completed_count }} completed</small>
+            <div class="bar" aria-hidden="true">
+              <span [style.width.%]="(course.enrollment_count / topEnrollment()) * 100"></span>
+            </div>
+          </li>
+        } @empty {
+          <li class="muted">No enrollments yet.</li>
+        }
+      </ol>
+    </section>
+
+    <section class="card" aria-labelledby="recent-users-title">
+      <header class="card-header">
+        <h2 id="recent-users-title">Newest members</h2>
+        <a routerLink="/admin/users" id="dashboard-all-users-link" class="text-sm">View all</a>
+      </header>
+      <ul class="card-body recent-users">
+        @for (user of stats.recent_users; track user.id) {
+          <li>
+            <app-avatar [name]="user.full_name" [url]="user.avatar_url" size="sm" />
+            <div class="grow">
+              <strong>{{ user.full_name }}</strong>
+              <small class="muted">{{ user.created_at | date: 'mediumDate' }}</small>
+            </div>
+            <span class="badge primary">{{ user.role | titlecase }}</span>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+} @else {
+  <app-loading label="Loading statistics…" />
+}

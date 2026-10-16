@@ -1,0 +1,53 @@
+:host {
+  display: block;
+  margin-top: 1.5rem;
+}
+
+.card-header h2 {
+  margin-bottom: 0.1rem;
+}
+
+.lesson-rows {
+  margin: 0;
+  padding: 0.4rem;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: var(--radius-sm);
+
+    &:hover {
+      background: var(--color-surface-2);
+    }
+
+    & + li {
+      border-top: 1px solid var(--color-border);
+    }
+  }
+
+  .grow {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+}
+
+.position {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.lesson-modal {
+  width: min(680px, calc(100vw - 2rem));
+}

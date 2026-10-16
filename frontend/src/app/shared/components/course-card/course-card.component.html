@@ -1,0 +1,43 @@
+@let item = course();
+<article class="course-card" [id]="'course-card-' + item.id" [attr.aria-labelledby]="'course-title-' + item.id">
+  <a
+    class="cover-link"
+    [routerLink]="['/courses', item.id]"
+    [attr.aria-label]="'Open course ' + item.title"
+    tabindex="-1"
+  >
+    <app-course-cover
+      [courseId]="item.id"
+      [title]="item.title"
+      [icon]="item.category.icon"
+      [imageUrl]="item.thumbnail_url"
+    />
+    <span class="price-tag" [class.free]="!item.price">{{ item.price | price }}</span>
+  </a>
+
+  <div class="body">
+    <div class="tags">
+      <span class="badge primary">
+        <app-icon [name]="item.category.icon" />
+        {{ item.category.name }}
+      </span>
+      <span class="badge">{{ item.level | titlecase }}</span>
+    </div>
+
+    <h3 class="title" [id]="'course-title-' + item.id">
+      <a [routerLink]="['/courses', item.id]" [title]="item.title">{{ item.title }}</a>
+    </h3>
+    <p class="summary">{{ item.summary }}</p>
+
+    <ul class="meta-list" aria-label="Course facts">
+      <li title="Number of lessons"><app-icon name="menu_book" /> {{ item.lesson_count }} lessons</li>
+      <li title="Total duration"><app-icon name="schedule" /> {{ item.duration_hours }} h</li>
+      <li title="Enrolled students"><app-icon name="group" /> {{ item.enrollment_count }}</li>
+    </ul>
+
+    <footer class="instructor">
+      <app-avatar [name]="item.instructor.full_name" [url]="item.instructor.avatar_url" size="sm" />
+      <span>{{ item.instructor.full_name }}</span>
+    </footer>
+  </div>
+</article>

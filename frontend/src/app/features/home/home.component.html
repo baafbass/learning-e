@@ -1,0 +1,220 @@
+<section class="hero" id="hero" aria-labelledby="hero-title">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <span class="pill"><app-icon name="bolt" [filled]="true" /> Online learning, reimagined</span>
+      <h1 id="hero-title">
+        Learn the skills that <span class="text-gradient">move your career</span> forward
+      </h1>
+      <p class="lead">
+        Practical courses in development, data, design and business — taught by experienced
+        instructors. Learn at your own pace and track every step.
+      </p>
+
+      <form
+        class="search"
+        id="hero-search-form"
+        name="hero-search-form"
+        role="search"
+        aria-label="Search courses"
+        (ngSubmit)="search()"
+      >
+        <app-icon name="search" />
+        <label class="visually-hidden" for="hero-search-input">Search courses</label>
+        <input
+          id="hero-search-input"
+          name="q"
+          type="search"
+          placeholder="What do you want to learn today?"
+          autocomplete="off"
+          maxlength="100"
+          [(ngModel)]="searchTerm"
+        />
+        <button type="submit" class="btn btn-primary" id="hero-search-submit" name="hero-search-submit">
+          Search
+        </button>
+      </form>
+
+      <div class="popular" aria-label="Popular searches">
+        <span class="muted">Popular:</span>
+        @for (term of popularSearches; track term) {
+          <button
+            type="button"
+            class="chip"
+            [id]="'popular-search-' + term.toLowerCase()"
+            [title]="'Search for ' + term"
+            (click)="search(term)"
+          >
+            {{ term }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="visual-card main">
+        <div class="visual-cover"><app-icon name="code" [size]="56" /></div>
+        <div class="visual-body">
+          <strong>Modern Angular from Scratch</strong>
+          <span class="muted text-sm">Lesson 4 of 6 · Routing</span>
+          <div class="bar"><span style="width: 66%"></span></div>
+        </div>
+      </div>
+      <div class="visual-card floating grade">
+        <span class="grade-pill grade-a">A</span>
+        <div>
+          <strong>Final project</strong>
+          <span class="muted text-sm">92 / 100 · Great work!</span>
+        </div>
+      </div>
+      <div class="visual-card floating done">
+        <app-icon name="check_circle" [filled]="true" />
+        <span>Course completed</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stats-band" aria-label="Platform figures">
+  <div class="container stats-grid">
+    <div class="stat">
+      <strong>{{ stats()?.courses ?? '—' }}</strong><span>Published courses</span>
+    </div>
+    <div class="stat">
+      <strong>{{ stats()?.students ?? '—' }}</strong><span>Active students</span>
+    </div>
+    <div class="stat">
+      <strong>{{ stats()?.instructors ?? '—' }}</strong><span>Expert instructors</span>
+    </div>
+    <div class="stat">
+      <strong>{{ stats()?.categories ?? '—' }}</strong><span>Categories</span>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="categories" aria-labelledby="categories-title">
+  <div class="container">
+    <header class="section-header">
+      <div>
+        <span class="eyebrow">Explore</span>
+        <h2 id="categories-title">Browse by category</h2>
+        <p>Find the right course in the field that interests you.</p>
+      </div>
+    </header>
+    <div class="category-grid">
+      @for (category of categories(); track category.id) {
+        <a
+          class="category"
+          [id]="'category-tile-' + category.id"
+          [routerLink]="['/courses']"
+          [queryParams]="{ category_id: category.id }"
+          [title]="'Browse ' + category.name + ' courses'"
+        >
+          <span class="category-icon"><app-icon [name]="category.icon" /></span>
+          <span>
+            <strong>{{ category.name }}</strong>
+            <small>{{ category.course_count }} {{ category.course_count === 1 ? 'course' : 'courses' }}</small>
+          </span>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section featured" id="featured-courses" aria-labelledby="featured-title">
+  <div class="container">
+    <header class="section-header">
+      <div>
+        <span class="eyebrow">Most popular</span>
+        <h2 id="featured-title">Courses students love</h2>
+        <p>Hand-picked by the number of learners enrolled.</p>
+      </div>
+      <a class="btn" routerLink="/courses" id="view-all-courses-link">
+        View all courses <app-icon name="arrow_forward" />
+      </a>
+    </header>
+
+    <div class="grid grid-cards">
+      @if (loadingCourses()) {
+        @for (placeholder of [1, 2, 3]; track placeholder) {
+          <div class="skeleton course-skeleton"></div>
+        }
+      } @else {
+        @for (course of courses(); track course.id) {
+          <app-course-card [course]="course" />
+        } @empty {
+          <p class="muted">No courses published yet. Check back soon!</p>
+        }
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section" id="how-it-works" aria-labelledby="how-title">
+  <div class="container">
+    <header class="section-header centered">
+      <div>
+        <span class="eyebrow">How it works</span>
+        <h2 id="how-title">Three steps to a new skill</h2>
+      </div>
+    </header>
+    <ol class="steps">
+      @for (step of steps; track step.title; let index = $index) {
+        <li class="card step">
+          <span class="step-number">{{ index + 1 }}</span>
+          <app-icon [name]="step.icon" [size]="32" />
+          <h3>{{ step.title }}</h3>
+          <p class="muted mb-0">{{ step.text }}</p>
+        </li>
+      }
+    </ol>
+  </div>
+</section>
+
+<section class="section features" id="features" aria-labelledby="features-title">
+  <div class="container features-grid">
+    <div>
+      <span class="eyebrow">Why LearnHub</span>
+      <h2 id="features-title">Everything you need to learn effectively</h2>
+      <p class="muted">
+        LearnHub keeps learning simple: clear courses, visible progress and honest feedback.
+      </p>
+      <a class="btn btn-gradient btn-lg" routerLink="/about" id="features-about-link">
+        Learn more about us
+      </a>
+    </div>
+    <ul class="feature-list">
+      @for (feature of features; track feature.title) {
+        <li>
+          <span class="feature-icon"><app-icon [name]="feature.icon" /></span>
+          <div>
+            <h3>{{ feature.title }}</h3>
+            <p class="muted mb-0">{{ feature.text }}</p>
+          </div>
+        </li>
+      }
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="call-to-action" aria-labelledby="cta-title">
+  <div class="container">
+    <div class="cta">
+      <div>
+        <h2 id="cta-title">Ready to start learning?</h2>
+        <p>Create a free account and enroll in your first course in under a minute.</p>
+      </div>
+      <div class="flex wrap gap-sm">
+        @if (auth.isLoggedIn()) {
+          <a class="btn btn-lg cta-primary" routerLink="/courses" id="cta-browse-link">Browse courses</a>
+        } @else {
+          <a class="btn btn-lg cta-primary" routerLink="/register" id="cta-register-link">
+            Get started for free
+          </a>
+          <a class="btn btn-lg cta-secondary" routerLink="/register" id="cta-teach-link">
+            Become an instructor
+          </a>
+        }
+      </div>
+    </div>
+  </div>
+</section>

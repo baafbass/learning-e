@@ -1,0 +1,8 @@
+// Global design system. Component files only hold layout specific to that component.
+@use 'styles/tokens';
+@use 'styles/base';
+@use 'styles/buttons';
+@use 'styles/forms';
+@use 'styles/components';
+@use 'styles/tables';
+@use 'styles/utilities';

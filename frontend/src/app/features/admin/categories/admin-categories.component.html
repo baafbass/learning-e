@@ -1,0 +1,135 @@
+<app-page-header
+  eyebrow="Administration"
+  title="Categories"
+  subtitle="Organize the catalog. Categories used by courses cannot be deleted."
+/>
+
+<div class="layout">
+  <section class="card" aria-labelledby="category-form-title">
+    <header class="card-header">
+      <h2 id="category-form-title">{{ editing() ? 'Edit category' : 'New category' }}</h2>
+    </header>
+    <form
+      class="card-body form-grid"
+      id="category-form"
+      name="category-form"
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      novalidate
+    >
+      <div class="field">
+        <label class="label" for="category-name">Name</label>
+        <input
+          class="input"
+          id="category-name"
+          name="name"
+          type="text"
+          formControlName="name"
+          placeholder="e.g. Data Science"
+          maxlength="80"
+          required
+        />
+        <app-field-error [control]="form.controls.name" label="Name" />
+      </div>
+
+      <fieldset class="field icons">
+        <legend class="label">Icon</legend>
+        <div class="icon-grid" role="radiogroup" aria-label="Category icon">
+          @for (icon of iconChoices; track icon) {
+            <label class="icon-choice" [for]="'category-icon-' + icon" [title]="icon">
+              <input type="radio" [id]="'category-icon-' + icon" name="icon" formControlName="icon" [value]="icon" />
+              <app-icon [name]="icon" />
+              <span class="visually-hidden">{{ icon }}</span>
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label class="label" for="category-description">
+          Description <span class="optional">(optional)</span>
+        </label>
+        <textarea
+          class="textarea"
+          id="category-description"
+          name="description"
+          formControlName="description"
+          rows="3"
+          maxlength="255"
+          placeholder="A short description of the category"
+        ></textarea>
+      </div>
+
+      <div class="form-actions">
+        @if (editing()) {
+          <button type="button" class="btn" id="category-cancel" name="category-cancel" (click)="cancelEdit()">
+            Cancel
+          </button>
+        }
+        <button type="submit" class="btn btn-primary" id="category-save" name="category-save" [disabled]="saving()">
+          <app-icon [name]="editing() ? 'save' : 'add'" />
+          {{ editing() ? 'Save changes' : 'Add category' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section aria-labelledby="category-list-title">
+    <h2 id="category-list-title" class="visually-hidden">Existing categories</h2>
+    @if (categories().length) {
+      <div class="table-wrapper">
+        <table class="table" id="categories-table">
+          <thead>
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col" class="numeric">Published courses</th>
+              <th scope="col" class="numeric">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (category of categories(); track category.id) {
+              <tr [id]="'category-row-' + category.id" [class.editing]="editing()?.id === category.id">
+                <td>
+                  <div class="cell-main">
+                    <span class="category-icon"><app-icon [name]="category.icon" /></span>
+                    <div>
+                      <strong>{{ category.name }}</strong>
+                      <small>{{ category.description ?? 'No description' }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td class="numeric">{{ category.course_count }}</td>
+                <td>
+                  <div class="actions">
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      [id]="'edit-category-' + category.id"
+                      title="Edit category"
+                      [attr.aria-label]="'Edit ' + category.name"
+                      (click)="edit(category)"
+                    >
+                      <app-icon name="edit" />
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn danger"
+                      [id]="'delete-category-' + category.id"
+                      title="Delete category"
+                      [attr.aria-label]="'Delete ' + category.name"
+                      (click)="remove(category)"
+                    >
+                      <app-icon name="delete" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <app-empty-state icon="category" title="No categories yet" message="Add the first category with the form." />
+    }
+  </section>
+</div>

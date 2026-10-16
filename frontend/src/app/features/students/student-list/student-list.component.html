@@ -1,0 +1,93 @@
+<app-page-header
+  [eyebrow]="auth.isAdmin() ? 'Administration' : 'Teaching'"
+  [title]="auth.isAdmin() ? 'Students' : 'My students'"
+  [subtitle]="
+    auth.isAdmin()
+      ? 'Every student on the platform, with their progress and grades.'
+      : 'Students enrolled in your courses, with their progress and grades.'
+  "
+/>
+
+<div class="toolbar" role="search" aria-label="Search students">
+  <div class="input-icon grow">
+    <app-icon name="search" />
+    <label class="visually-hidden" for="student-search">Search students</label>
+    <input
+      class="input"
+      id="student-search"
+      name="q"
+      type="search"
+      placeholder="Search by name or email…"
+      autocomplete="off"
+      maxlength="100"
+      [formControl]="searchControl"
+    />
+  </div>
+</div>
+
+@if (loading() && !result()) {
+  <app-loading label="Loading students…" />
+} @else if (result(); as page) {
+  @if (page.items.length) {
+    <div class="table-wrapper">
+      <table class="table" id="students-table">
+        <caption class="visually-hidden">Students, {{ page.total }} in total</caption>
+        <thead>
+          <tr>
+            <th scope="col">Student</th>
+            <th scope="col" class="numeric">Enrollments</th>
+            <th scope="col" class="numeric">Completed</th>
+            <th scope="col">Average grade</th>
+            <th scope="col">Joined</th>
+            <th scope="col" class="numeric">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (student of page.items; track student.id) {
+            @let letter = student.average_score | letterGrade;
+            <tr [id]="'student-row-' + student.id">
+              <td>
+                <div class="cell-main">
+                  <app-avatar [name]="student.full_name" [url]="student.avatar_url" size="sm" />
+                  <div>
+                    <strong>{{ student.full_name }}</strong>
+                    <small>{{ student.email }}</small>
+                  </div>
+                  @if (!student.is_active) {
+                    <span class="badge danger">Inactive</span>
+                  }
+                </div>
+              </td>
+              <td class="numeric">{{ student.enrollment_count }}</td>
+              <td class="numeric">{{ student.completed_count }}</td>
+              <td>
+                @if (student.average_score !== null) {
+                  <span class="grade-pill grade-{{ letter | lowercase }}">{{ letter }}</span>
+                  <span class="muted text-sm"> {{ student.average_score }}%</span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td class="nowrap">{{ student.created_at | date: 'mediumDate' }}</td>
+              <td>
+                <div class="actions">
+                  <a
+                    class="btn btn-soft btn-sm"
+                    [routerLink]="[student.id]"
+                    [id]="'student-details-' + student.id"
+                    [attr.aria-label]="'View details for ' + student.full_name"
+                  >
+                    View <app-icon name="chevron_right" />
+                  </a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pagination [page]="page.page" [pages]="page.pages" (pageChange)="changePage($event)" />
+  } @else {
+    <app-empty-state icon="person_search" title="No students found" message="Students appear here once they enroll." />
+  }
+}

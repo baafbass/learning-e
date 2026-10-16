@@ -1,0 +1,48 @@
+<footer class="footer" id="site-footer" role="contentinfo">
+  <div class="container grid-footer">
+    <section class="brand-column" aria-labelledby="footer-brand-title">
+      <a class="brand" routerLink="/" id="footer-brand-link" title="LearnHub home">
+        <span class="logo-mark" aria-hidden="true"><app-icon name="school" [filled]="true" /></span>
+        <span id="footer-brand-title">LearnHub</span>
+      </a>
+      <p>
+        Practical courses taught by experienced instructors. Learn at your own pace, track your
+        progress and grow your career.
+      </p>
+      <ul class="social" aria-label="Social links">
+        @for (social of socialLinks; track social.url) {
+          <li>
+            <a
+              class="icon-btn"
+              [href]="social.url"
+              [title]="social.label"
+              [attr.aria-label]="social.label"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <app-icon [name]="social.icon" />
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+
+    @for (column of columns; track column.id) {
+      <nav class="link-column" [attr.aria-labelledby]="'footer-' + column.id + '-title'">
+        <h2 [id]="'footer-' + column.id + '-title'">{{ column.title }}</h2>
+        <ul>
+          @for (link of column.links; track link.path) {
+            <li>
+              <a [routerLink]="link.path" [id]="'footer-link-' + link.path.slice(1)">{{ link.label }}</a>
+            </li>
+          }
+        </ul>
+      </nav>
+    }
+  </div>
+
+  <div class="container bottom-bar">
+    <p>© {{ year }} LearnHub. All rights reserved.</p>
+    <p>Built with Angular, FastAPI and PostgreSQL.</p>
+  </div>
+</footer>

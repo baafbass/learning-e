@@ -1,0 +1,137 @@
+@if (loadingCourse()) {
+  <app-loading label="Loading course…" />
+} @else if (course(); as course) {
+  <div class="container viewer">
+    <aside class="outline card" id="lesson-outline" [class.open]="sidebarOpen()" aria-label="Course lessons">
+      <div class="outline-header">
+        <a [routerLink]="['/courses', course.id]" class="back" id="back-to-course-link">
+          <app-icon name="arrow_back" [size]="18" /> Back to course
+        </a>
+        <h2>{{ course.title }}</h2>
+        @if (enrollment(); as enrollment) {
+          <app-progress-bar [value]="enrollment.progress" label="Course progress" />
+        } @else {
+          <span class="badge warning"><app-icon name="visibility" /> Preview mode</span>
+        }
+      </div>
+      <ol>
+        @for (item of course.lessons; track item.id; let index = $index) {
+          <li>
+            <a
+              [routerLink]="['/courses', course.id, 'learn', item.id]"
+              [id]="'outline-item-' + item.id"
+              [class.current]="item.id === lesson()?.id"
+              [attr.aria-current]="item.id === lesson()?.id ? 'page' : null"
+            >
+              <app-icon
+                [name]="completedIds().has(item.id) ? 'check_circle' : 'radio_button_unchecked'"
+                [filled]="completedIds().has(item.id)"
+                [class.done]="completedIds().has(item.id)"
+              />
+              <span class="grow">{{ index + 1 }}. {{ item.title }}</span>
+              <span class="muted text-sm">{{ item.duration_minutes }}m</span>
+            </a>
+          </li>
+        }
+      </ol>
+    </aside>
+
+    <article class="lesson" aria-live="polite">
+      <button
+        type="button"
+        class="btn btn-sm outline-toggle"
+        id="toggle-outline-button"
+        name="toggle-outline"
+        aria-controls="lesson-outline"
+        [attr.aria-expanded]="sidebarOpen()"
+        (click)="sidebarOpen.set(!sidebarOpen())"
+      >
+        <app-icon name="list" /> Lessons
+      </button>
+
+      @if (loadingLesson()) {
+        <app-loading label="Loading lesson…" />
+      } @else if (lesson(); as lesson) {
+        <header class="lesson-header">
+          <span class="eyebrow">Lesson {{ lessonNumber() }} of {{ course.lessons.length }}</span>
+          <h1>{{ lesson.title }}</h1>
+          <ul class="meta-list">
+            <li><app-icon name="schedule" /> {{ lesson.duration_minutes }} minutes</li>
+            @if (isCompleted()) {
+              <li class="completed"><app-icon name="check_circle" [filled]="true" /> Completed</li>
+            }
+          </ul>
+        </header>
+
+        @if (lesson.video_url) {
+          @if (lesson.video_url | videoEmbed; as embedUrl) {
+            <div class="video">
+              <iframe
+                [src]="embedUrl"
+                [title]="'Video for ' + lesson.title"
+                id="lesson-video"
+                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                allowfullscreen
+                loading="lazy"
+              ></iframe>
+            </div>
+          } @else {
+            <a class="btn btn-soft mb" [href]="lesson.video_url" target="_blank" rel="noopener noreferrer" id="lesson-video-link">
+              <app-icon name="smart_display" /> Watch the lesson video
+            </a>
+          }
+        }
+
+        <div class="content card card-body" id="lesson-content">{{ lesson.content }}</div>
+
+        <footer class="lesson-actions">
+          @if (previousLesson(); as previous) {
+            <a class="btn" [routerLink]="['/courses', course.id, 'learn', previous.id]" id="previous-lesson-link">
+              <app-icon name="arrow_back" /> Previous
+            </a>
+          } @else {
+            <span></span>
+          }
+
+          @if (enrollment()) {
+            <button
+              type="button"
+              class="btn"
+              id="toggle-complete-button"
+              name="toggle-complete"
+              [class.btn-primary]="!isCompleted()"
+              [class.btn-soft]="isCompleted()"
+              [disabled]="saving()"
+              (click)="toggleCompleted()"
+            >
+              <app-icon [name]="isCompleted() ? 'undo' : 'check'" />
+              {{ isCompleted() ? 'Mark as not complete' : 'Mark as complete' }}
+            </button>
+          }
+
+          @if (nextLesson(); as next) {
+            <a class="btn" [class.btn-gradient]="isCompleted()" [routerLink]="['/courses', course.id, 'learn', next.id]" id="next-lesson-link">
+              Next <app-icon name="arrow_forward" />
+            </a>
+          } @else {
+            <a class="btn" [routerLink]="['/courses', course.id]" id="finish-course-link">
+              Finish <app-icon name="flag" />
+            </a>
+          }
+        </footer>
+      } @else {
+        <app-empty-state icon="lock" title="Lesson unavailable" [message]="lessonError()">
+          <a class="btn btn-primary" [routerLink]="['/courses', course.id]" id="lesson-error-course-link">
+            Go to the course page
+          </a>
+        </app-empty-state>
+      }
+    </article>
+  </div>
+} @else {
+  <div class="container page">
+    <app-empty-state icon="search_off" title="Course not found">
+      <a class="btn btn-primary" routerLink="/courses" id="viewer-browse-link">Browse courses</a>
+    </app-empty-state>
+  </div>
+}

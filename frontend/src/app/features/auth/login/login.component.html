@@ -1,0 +1,103 @@
+<app-auth-shell tagline="Welcome back! Pick up right where you left off.">
+  <h1 class="page-title">Log in</h1>
+  <p class="muted">
+    New to LearnHub? <a routerLink="/register" id="login-to-register-link">Create an account</a>
+  </p>
+
+  @if (error(); as message) {
+    <div class="alert danger mb" role="alert" id="login-error">
+      <app-icon name="error" /> <span>{{ message }}</span>
+    </div>
+  }
+
+  <form
+    class="form-grid"
+    id="login-form"
+    name="login-form"
+    aria-label="Log in form"
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+  >
+    <div class="field">
+      <label class="label" for="login-email">Email address</label>
+      <div class="input-icon">
+        <app-icon name="mail" />
+        <input
+          class="input"
+          id="login-email"
+          name="email"
+          type="email"
+          formControlName="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+          inputmode="email"
+          required
+          aria-describedby="login-email-error"
+        />
+      </div>
+      <app-field-error [control]="form.controls.email" label="Email" errorId="login-email-error" />
+    </div>
+
+    <div class="field">
+      <label class="label" for="login-password">Password</label>
+      <div class="password-field">
+        <input
+          class="input"
+          id="login-password"
+          name="password"
+          [type]="showPassword() ? 'text' : 'password'"
+          formControlName="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          required
+          aria-describedby="login-password-error"
+        />
+        <button
+          type="button"
+          class="icon-btn"
+          id="login-toggle-password"
+          [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+          [title]="showPassword() ? 'Hide password' : 'Show password'"
+          (click)="showPassword.set(!showPassword())"
+        >
+          <app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" />
+        </button>
+      </div>
+      <app-field-error
+        [control]="form.controls.password"
+        label="Password"
+        errorId="login-password-error"
+      />
+    </div>
+
+    <button
+      type="submit"
+      class="btn btn-primary btn-lg btn-block"
+      id="login-submit"
+      name="login-submit"
+      [disabled]="submitting()"
+    >
+      <app-icon name="login" />
+      {{ submitting() ? 'Logging in…' : 'Log in' }}
+    </button>
+  </form>
+
+  <section class="demo" aria-labelledby="demo-accounts-title">
+    <h2 id="demo-accounts-title">Demo accounts</h2>
+    <p class="hint">Available after seeding the database. Click to fill the form.</p>
+    <div class="flex wrap gap-sm">
+      @for (account of demoAccounts; track account.email) {
+        <button
+          type="button"
+          class="btn btn-soft btn-sm"
+          [id]="'demo-login-' + account.role.toLowerCase()"
+          [title]="'Use the demo ' + account.role.toLowerCase() + ' account'"
+          (click)="useDemo(account)"
+        >
+          {{ account.role }}
+        </button>
+      }
+    </div>
+  </section>
+</app-auth-shell>

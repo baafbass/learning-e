@@ -1,0 +1,157 @@
+<app-page-header
+  [eyebrow]="auth.isAdmin() ? 'Administration' : 'Teaching'"
+  [title]="auth.isAdmin() ? 'All courses' : 'My courses'"
+  subtitle="Create, edit, publish and grade your courses."
+>
+  <a class="btn btn-primary" routerLink="/teach/courses/new" id="new-course-link">
+    <app-icon name="add" /> New course
+  </a>
+</app-page-header>
+
+<div class="toolbar" role="search" aria-label="Filter courses">
+  <div class="input-icon grow">
+    <app-icon name="search" />
+    <label class="visually-hidden" for="manage-course-search">Search courses</label>
+    <input
+      class="input"
+      id="manage-course-search"
+      name="q"
+      type="search"
+      placeholder="Search by title or keyword…"
+      autocomplete="off"
+      maxlength="100"
+      [formControl]="searchControl"
+    />
+  </div>
+  <label class="visually-hidden" for="manage-course-status">Filter by status</label>
+  <select
+    class="select"
+    id="manage-course-status"
+    name="status"
+    title="Filter by publication status"
+    [formControl]="statusControl"
+  >
+    <option value="">All statuses</option>
+    <option value="published">Published</option>
+    <option value="draft">Drafts</option>
+  </select>
+</div>
+
+@if (loading() && !result()) {
+  <app-loading label="Loading courses…" />
+} @else if (result(); as page) {
+  @if (page.items.length) {
+    <div class="table-wrapper">
+      <table class="table" id="manage-courses-table" aria-describedby="manage-courses-caption">
+        <caption id="manage-courses-caption" class="visually-hidden">
+          Courses you can manage, {{ page.total }} in total
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Course</th>
+            <th scope="col">Status</th>
+            <th scope="col">Level</th>
+            <th scope="col" class="numeric">Lessons</th>
+            <th scope="col" class="numeric">Students</th>
+            <th scope="col">Price</th>
+            <th scope="col">Updated</th>
+            <th scope="col" class="numeric">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (course of page.items; track course.id) {
+            <tr [id]="'manage-course-row-' + course.id">
+              <td>
+                <div class="cell-main">
+                  <div>
+                    <strong>{{ course.title }}</strong>
+                    <small>
+                      {{ course.category.name }}
+                      @if (auth.isAdmin()) {
+                        · {{ course.instructor.full_name }}
+                      }
+                    </small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                @if (course.is_published) {
+                  <span class="badge success"><app-icon name="public" /> Published</span>
+                } @else {
+                  <span class="badge warning"><app-icon name="edit_note" /> Draft</span>
+                }
+              </td>
+              <td>{{ course.level | titlecase }}</td>
+              <td class="numeric">{{ course.lesson_count }}</td>
+              <td class="numeric">{{ course.enrollment_count }}</td>
+              <td>{{ course.price | price }}</td>
+              <td class="nowrap">{{ course.updated_at | date: 'mediumDate' }}</td>
+              <td>
+                <div class="actions">
+                  <a
+                    class="icon-btn"
+                    [routerLink]="['/courses', course.id]"
+                    [id]="'view-course-' + course.id"
+                    title="View course page"
+                    [attr.aria-label]="'View ' + course.title"
+                  >
+                    <app-icon name="visibility" />
+                  </a>
+                  <a
+                    class="icon-btn"
+                    [routerLink]="['/teach/courses', course.id, 'edit']"
+                    [id]="'edit-course-' + course.id"
+                    title="Edit course and lessons"
+                    [attr.aria-label]="'Edit ' + course.title"
+                  >
+                    <app-icon name="edit" />
+                  </a>
+                  <a
+                    class="icon-btn"
+                    [routerLink]="['/teach/courses', course.id, 'gradebook']"
+                    [id]="'gradebook-course-' + course.id"
+                    title="Open gradebook"
+                    [attr.aria-label]="'Gradebook for ' + course.title"
+                  >
+                    <app-icon name="grading" />
+                  </a>
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    [id]="'toggle-publish-' + course.id"
+                    [title]="course.is_published ? 'Unpublish (move to drafts)' : 'Publish course'"
+                    [attr.aria-label]="(course.is_published ? 'Unpublish ' : 'Publish ') + course.title"
+                    (click)="togglePublished(course)"
+                  >
+                    <app-icon [name]="course.is_published ? 'unpublished' : 'publish'" />
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn danger"
+                    [id]="'delete-course-' + course.id"
+                    title="Delete course"
+                    [attr.aria-label]="'Delete ' + course.title"
+                    (click)="remove(course)"
+                  >
+                    <app-icon name="delete" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pagination [page]="page.page" [pages]="page.pages" (pageChange)="changePage($event)" />
+  } @else {
+    <app-empty-state
+      icon="library_add"
+      title="No courses found"
+      message="Create your first course or adjust the filters."
+    >
+      <a class="btn btn-primary" routerLink="/teach/courses/new" id="empty-new-course-link">
+        <app-icon name="add" /> Create a course
+      </a>
+    </app-empty-state>
+  }
+}

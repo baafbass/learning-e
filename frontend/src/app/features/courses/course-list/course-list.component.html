@@ -1,0 +1,175 @@
+<section class="catalog-hero" aria-labelledby="catalog-title">
+  <div class="container">
+    <span class="eyebrow">Course catalog</span>
+    <h1 id="catalog-title">Explore courses</h1>
+    <p class="muted mb-0">
+      Search, filter and sort our catalog to find the course that fits your goals.
+    </p>
+  </div>
+</section>
+
+<div class="container catalog" [formGroup]="form">
+  <aside
+    class="filters card"
+    id="catalog-filters"
+    [class.open]="filtersOpen()"
+    aria-label="Course filters"
+  >
+    <div class="filters-header">
+      <h2>Filters</h2>
+      @if (activeFilters()) {
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm"
+          id="clear-filters-button"
+          name="clear-filters"
+          title="Remove all filters"
+          (click)="clearFilters()"
+        >
+          Clear all
+        </button>
+      }
+    </div>
+
+    <div class="field">
+      <label class="label" for="catalog-search">Search</label>
+      <div class="input-icon">
+        <app-icon name="search" />
+        <input
+          class="input"
+          id="catalog-search"
+          name="q"
+          type="search"
+          formControlName="q"
+          placeholder="Title or keyword…"
+          autocomplete="off"
+          maxlength="100"
+          aria-describedby="catalog-search-hint"
+        />
+      </div>
+      <span class="hint" id="catalog-search-hint">Results update as you type.</span>
+    </div>
+
+    <fieldset class="filter-group">
+      <legend class="label">Category</legend>
+      <div class="radio-list">
+        <label for="category-all">
+          <input type="radio" id="category-all" name="category_id" formControlName="category_id" [value]="null" />
+          All categories
+        </label>
+        @for (category of categories(); track category.id) {
+          <label [for]="'category-' + category.id">
+            <input
+              type="radio"
+              [id]="'category-' + category.id"
+              name="category_id"
+              formControlName="category_id"
+              [value]="category.id"
+            />
+            <span class="grow">{{ category.name }}</span>
+            <span class="count">{{ category.course_count }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset class="filter-group">
+      <legend class="label">Level</legend>
+      <div class="radio-list">
+        <label for="level-all">
+          <input type="radio" id="level-all" name="level" formControlName="level" [value]="null" />
+          All levels
+        </label>
+        @for (level of levels; track level) {
+          <label [for]="'level-' + level">
+            <input type="radio" [id]="'level-' + level" name="level" formControlName="level" [value]="level" />
+            {{ level | titlecase }}
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset class="filter-group">
+      <legend class="label">Price</legend>
+      <div class="radio-list">
+        <label for="price-all">
+          <input type="radio" id="price-all" name="price" formControlName="price" [value]="null" />
+          Any price
+        </label>
+        @for (option of priceOptions; track option.value) {
+          <label [for]="'price-' + option.value">
+            <input
+              type="radio"
+              [id]="'price-' + option.value"
+              name="price"
+              formControlName="price"
+              [value]="option.value"
+            />
+            {{ option.label }}
+          </label>
+        }
+      </div>
+    </fieldset>
+  </aside>
+
+  <section class="results" aria-labelledby="results-summary" aria-live="polite">
+    <div class="results-bar">
+      <p id="results-summary" class="mb-0">
+        @if (result(); as page) {
+          <strong>{{ page.total }}</strong> {{ page.total === 1 ? 'course' : 'courses' }} found
+        } @else {
+          Loading courses…
+        }
+      </p>
+      <div class="flex items-center gap-sm">
+        <button
+          type="button"
+          class="btn btn-sm filters-toggle"
+          id="toggle-filters-button"
+          name="toggle-filters"
+          aria-controls="catalog-filters"
+          [attr.aria-expanded]="filtersOpen()"
+          (click)="filtersOpen.set(!filtersOpen())"
+        >
+          <app-icon name="tune" /> Filters
+          @if (activeFilters()) {
+            <span class="badge primary">{{ activeFilters() }}</span>
+          }
+        </button>
+        <label class="visually-hidden" for="catalog-sort">Sort courses by</label>
+        <select class="select" id="catalog-sort" name="sort" formControlName="sort" title="Sort courses">
+          @for (option of sortOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="grid grid-cards">
+        @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+          <div class="skeleton course-skeleton"></div>
+        }
+      </div>
+    } @else if (result(); as page) {
+      @if (page.items.length) {
+        <div class="grid grid-cards">
+          @for (course of page.items; track course.id) {
+            <app-course-card [course]="course" />
+          }
+        </div>
+        <app-pagination [page]="page.page" [pages]="page.pages" (pageChange)="changePage($event)" />
+      } @else {
+        <app-empty-state
+          icon="search_off"
+          title="No courses match your search"
+          message="Try another keyword or remove some filters."
+        >
+          <button type="button" class="btn btn-primary" id="empty-clear-filters" (click)="clearFilters()">
+            Clear filters
+          </button>
+        </app-empty-state>
+      }
+    }
+  </section>
+</div>

@@ -1,0 +1,228 @@
+<app-page-header
+  eyebrow="Teaching"
+  [title]="isEdit() ? 'Edit course' : 'Create a new course'"
+  [subtitle]="isEdit() ? course()?.title ?? null : 'Describe your course; you can add lessons after saving.'"
+>
+  <a class="btn" routerLink="/teach" id="back-to-courses-link">
+    <app-icon name="arrow_back" /> Back to courses
+  </a>
+  @if (course(); as current) {
+    <a class="btn" [routerLink]="['/courses', current.id]" id="view-course-page-link">
+      <app-icon name="visibility" /> View page
+    </a>
+  }
+</app-page-header>
+
+@if (loading()) {
+  <app-loading label="Loading course…" />
+} @else {
+  <form
+    class="course-form"
+    id="course-form"
+    name="course-form"
+    aria-label="Course details form"
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    novalidate
+  >
+    <div class="main-column">
+      <section class="card" aria-labelledby="course-basics-title">
+        <header class="card-header"><h2 id="course-basics-title">Basics</h2></header>
+        <div class="card-body form-grid">
+          <div class="field">
+            <label class="label" for="course-title">Title</label>
+            <input
+              class="input"
+              id="course-title"
+              name="title"
+              type="text"
+              formControlName="title"
+              placeholder="e.g. Modern Angular from Scratch"
+              maxlength="200"
+              required
+            />
+            <app-field-error [control]="form.controls.title" label="Title" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="course-summary">Short summary</label>
+            <input
+              class="input"
+              id="course-summary"
+              name="summary"
+              type="text"
+              formControlName="summary"
+              placeholder="One sentence shown on the course card"
+              maxlength="300"
+              required
+            />
+            <span class="hint">{{ form.controls.summary.value.length }} / 300 characters</span>
+            <app-field-error [control]="form.controls.summary" label="Summary" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="course-description">Description</label>
+            <textarea
+              class="textarea"
+              id="course-description"
+              name="description"
+              formControlName="description"
+              rows="6"
+              placeholder="What is this course about, who is it for and what will students build?"
+              required
+            ></textarea>
+            <app-field-error [control]="form.controls.description" label="Description" />
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="course-outcomes-title">
+        <header class="card-header">
+          <h2 id="course-outcomes-title">Learning outcomes</h2>
+          <span class="muted text-sm">{{ outcomes.length }} / {{ maxOutcomes }}</span>
+        </header>
+        <div class="card-body" formArrayName="outcomes">
+          <p class="hint mt-0">List what students will be able to do after the course.</p>
+          @for (control of outcomes.controls; track control; let index = $index) {
+            <div class="outcome-row">
+              <app-icon name="check_circle" />
+              <label class="visually-hidden" [for]="'course-outcome-' + index">Outcome {{ index + 1 }}</label>
+              <input
+                class="input"
+                [id]="'course-outcome-' + index"
+                [name]="'outcome_' + index"
+                type="text"
+                [formControlName]="index"
+                placeholder="e.g. Build a REST API with FastAPI"
+                maxlength="200"
+              />
+              <button
+                type="button"
+                class="icon-btn danger"
+                [id]="'remove-outcome-' + index"
+                title="Remove outcome"
+                [attr.aria-label]="'Remove outcome ' + (index + 1)"
+                [disabled]="outcomes.length === 1"
+                (click)="removeOutcome(index)"
+              >
+                <app-icon name="close" />
+              </button>
+            </div>
+          }
+          <button
+            type="button"
+            class="btn btn-soft btn-sm"
+            id="add-outcome-button"
+            name="add-outcome"
+            [disabled]="outcomes.length >= maxOutcomes"
+            (click)="addOutcome()"
+          >
+            <app-icon name="add" /> Add outcome
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <aside class="side-column">
+      <section class="card" aria-labelledby="course-settings-title">
+        <header class="card-header"><h2 id="course-settings-title">Settings</h2></header>
+        <div class="card-body form-grid">
+          <div class="field">
+            <label class="label" for="course-category">Category</label>
+            <select class="select" id="course-category" name="category_id" formControlName="category_id" required>
+              <option [ngValue]="null" disabled>Select a category</option>
+              @for (category of categories(); track category.id) {
+                <option [ngValue]="category.id">{{ category.name }}</option>
+              }
+            </select>
+            <app-field-error [control]="form.controls.category_id" label="Category" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="course-level">Level</label>
+            <select class="select" id="course-level" name="level" formControlName="level">
+              @for (level of levels; track level) {
+                <option [value]="level">{{ level | titlecase }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-grid two-cols">
+            <div class="field">
+              <label class="label" for="course-price">Price (USD)</label>
+              <input
+                class="input"
+                id="course-price"
+                name="price"
+                type="number"
+                formControlName="price"
+                min="0"
+                max="10000"
+                step="0.01"
+                placeholder="0 = free"
+                inputmode="decimal"
+              />
+              <app-field-error [control]="form.controls.price" label="Price" />
+            </div>
+            <div class="field">
+              <label class="label" for="course-duration">Duration (hours)</label>
+              <input
+                class="input"
+                id="course-duration"
+                name="duration_hours"
+                type="number"
+                formControlName="duration_hours"
+                min="0"
+                max="1000"
+                step="1"
+                placeholder="e.g. 10"
+                inputmode="numeric"
+              />
+              <app-field-error [control]="form.controls.duration_hours" label="Duration" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="course-thumbnail">
+              Cover image URL <span class="optional">(optional)</span>
+            </label>
+            <input
+              class="input"
+              id="course-thumbnail"
+              name="thumbnail_url"
+              type="url"
+              formControlName="thumbnail_url"
+              placeholder="https://…/cover.jpg"
+              maxlength="500"
+            />
+            <span class="hint">Leave empty to use a generated cover.</span>
+            <app-field-error [control]="form.controls.thumbnail_url" label="Cover image URL" />
+          </div>
+
+          <label class="checkbox publish" for="course-published">
+            <input type="checkbox" id="course-published" name="is_published" formControlName="is_published" />
+            <span>
+              <strong>Published</strong>
+              <small>Visible in the public catalog</small>
+            </span>
+          </label>
+
+          <button
+            type="submit"
+            class="btn btn-primary btn-block btn-lg"
+            id="course-save"
+            name="course-save"
+            [disabled]="saving()"
+          >
+            <app-icon name="save" />
+            {{ saving() ? 'Saving…' : isEdit() ? 'Save changes' : 'Create course' }}
+          </button>
+        </div>
+      </section>
+    </aside>
+  </form>
+
+  @if (course(); as current) {
+    <app-lesson-manager [courseId]="current.id" [lessons]="current.lessons" (changed)="reloadCourse()" />
+  }
+}

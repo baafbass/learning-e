@@ -1,0 +1,194 @@
+<div class="container page">
+  <app-page-header
+    eyebrow="Account"
+    title="Your profile"
+    subtitle="Manage your personal information and keep your account secure."
+  />
+
+  @if (auth.user(); as user) {
+    <div class="profile-grid">
+      <aside class="card card-body summary" aria-label="Account summary">
+        <app-avatar [name]="user.full_name" [url]="user.avatar_url" size="lg" />
+        <h2>{{ user.full_name }}</h2>
+        <p class="muted mb-0">{{ user.email }}</p>
+        <span class="badge primary">{{ user.role | titlecase }}</span>
+        <dl>
+          <div>
+            <dt>Member since</dt>
+            <dd>{{ user.created_at | date: 'longDate' }}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{{ user.is_active ? 'Active' : 'Deactivated' }}</dd>
+          </div>
+        </dl>
+      </aside>
+
+      <div class="forms">
+        <section class="card" aria-labelledby="profile-form-title">
+          <header class="card-header">
+            <h2 id="profile-form-title">Personal information</h2>
+          </header>
+          <form
+            class="card-body form-grid"
+            id="profile-form"
+            name="profile-form"
+            [formGroup]="profileForm"
+            (ngSubmit)="saveProfile()"
+            novalidate
+          >
+            <div class="form-grid two-cols">
+              <div class="field">
+                <label class="label" for="profile-full-name">Full name</label>
+                <input
+                  class="input"
+                  id="profile-full-name"
+                  name="full_name"
+                  type="text"
+                  formControlName="full_name"
+                  placeholder="Your full name"
+                  autocomplete="name"
+                  maxlength="120"
+                  required
+                />
+                <app-field-error [control]="profileForm.controls.full_name" label="Full name" />
+              </div>
+              <div class="field">
+                <label class="label" for="profile-email">Email address</label>
+                <input
+                  class="input"
+                  id="profile-email"
+                  name="email"
+                  type="email"
+                  [value]="user.email"
+                  readonly
+                  aria-describedby="profile-email-hint"
+                />
+                <span class="hint" id="profile-email-hint">Your email is used to log in and cannot be changed.</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="profile-avatar-url">
+                Avatar URL <span class="optional">(optional)</span>
+              </label>
+              <input
+                class="input"
+                id="profile-avatar-url"
+                name="avatar_url"
+                type="url"
+                formControlName="avatar_url"
+                placeholder="https://example.com/photo.jpg"
+                autocomplete="photo"
+                maxlength="500"
+              />
+              <app-field-error [control]="profileForm.controls.avatar_url" label="Avatar URL" />
+            </div>
+
+            <div class="field">
+              <label class="label" for="profile-bio">Bio <span class="optional">(optional)</span></label>
+              <textarea
+                class="textarea"
+                id="profile-bio"
+                name="bio"
+                formControlName="bio"
+                rows="4"
+                maxlength="1000"
+                placeholder="Tell other learners a little about yourself…"
+              ></textarea>
+              <span class="hint">{{ profileForm.controls.bio.value.length }} / 1000 characters</span>
+            </div>
+
+            <div class="form-actions">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="profile-save"
+                name="profile-save"
+                [disabled]="savingProfile() || profileForm.pristine"
+              >
+                <app-icon name="save" /> {{ savingProfile() ? 'Saving…' : 'Save changes' }}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card" aria-labelledby="password-form-title">
+          <header class="card-header">
+            <h2 id="password-form-title">Change password</h2>
+          </header>
+          <form
+            class="card-body form-grid"
+            id="password-form"
+            name="password-form"
+            [formGroup]="passwordForm"
+            (ngSubmit)="changePassword()"
+            novalidate
+          >
+            <div class="field">
+              <label class="label" for="current-password">Current password</label>
+              <input
+                class="input"
+                id="current-password"
+                name="current_password"
+                type="password"
+                formControlName="current_password"
+                placeholder="Enter your current password"
+                autocomplete="current-password"
+                required
+              />
+              <app-field-error [control]="passwordForm.controls.current_password" label="Current password" />
+            </div>
+            <div class="form-grid two-cols">
+              <div class="field">
+                <label class="label" for="new-password">New password</label>
+                <input
+                  class="input"
+                  id="new-password"
+                  name="new_password"
+                  type="password"
+                  formControlName="new_password"
+                  placeholder="At least 8 characters"
+                  autocomplete="new-password"
+                  minlength="8"
+                  maxlength="72"
+                  required
+                />
+                <app-field-error [control]="passwordForm.controls.new_password" label="New password" />
+              </div>
+              <div class="field">
+                <label class="label" for="confirm-new-password">Confirm new password</label>
+                <input
+                  class="input"
+                  id="confirm-new-password"
+                  name="confirm_password"
+                  type="password"
+                  formControlName="confirm_password"
+                  placeholder="Repeat the new password"
+                  autocomplete="new-password"
+                  required
+                />
+                @if (passwordForm.hasError('mismatch') && passwordForm.controls.confirm_password.touched) {
+                  <p class="error-text" role="alert">
+                    <app-icon name="error" [size]="16" />Passwords do not match.
+                  </p>
+                }
+              </div>
+            </div>
+            <div class="form-actions">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="password-save"
+                name="password-save"
+                [disabled]="savingPassword()"
+              >
+                <app-icon name="lock_reset" /> {{ savingPassword() ? 'Updating…' : 'Update password' }}
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  }
+</div>

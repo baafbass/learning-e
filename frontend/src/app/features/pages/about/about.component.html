@@ -1,0 +1,65 @@
+<section class="intro" aria-labelledby="about-title">
+  <div class="container narrow text-center">
+    <span class="eyebrow">About LearnHub</span>
+    <h1 id="about-title">We help people learn the skills that matter</h1>
+    <p class="lead">
+      LearnHub connects curious learners with experienced instructors. Our goal is simple: make
+      quality education accessible, measurable and enjoyable.
+    </p>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="mission-title">
+  <div class="container mission">
+    <div>
+      <span class="eyebrow">Our mission</span>
+      <h2 id="mission-title">Learning that fits your life</h2>
+      <p class="muted">
+        Learners choose what to study, follow structured lessons at their own pace and see their
+        progress at every step. Instructors get simple tools to publish courses, follow their
+        students and grade their work.
+      </p>
+      <p class="muted">
+        LearnHub was created as an academic project to show how a modern web platform can be built
+        with Angular, FastAPI and PostgreSQL — cleanly, securely and with accessibility in mind.
+      </p>
+    </div>
+    <dl class="numbers">
+      <div><dt>Courses</dt><dd>{{ stats()?.courses ?? '—' }}</dd></div>
+      <div><dt>Students</dt><dd>{{ stats()?.students ?? '—' }}</dd></div>
+      <div><dt>Instructors</dt><dd>{{ stats()?.instructors ?? '—' }}</dd></div>
+      <div><dt>Categories</dt><dd>{{ stats()?.categories ?? '—' }}</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="section values-section" aria-labelledby="values-title">
+  <div class="container">
+    <header class="section-header">
+      <div>
+        <span class="eyebrow">What we believe</span>
+        <h2 id="values-title">Our values</h2>
+      </div>
+    </header>
+    <ul class="values">
+      @for (value of values; track value.title) {
+        <li class="card card-body">
+          <span class="value-icon"><app-icon [name]="value.icon" /></span>
+          <h3>{{ value.title }}</h3>
+          <p class="muted mb-0">{{ value.text }}</p>
+        </li>
+      }
+    </ul>
+  </div>
+</section>
+
+<section class="section" aria-label="Get started">
+  <div class="container text-center">
+    <h2>Ready to join us?</h2>
+    <p class="muted">Start learning today or share your expertise as an instructor.</p>
+    <div class="flex gap-sm wrap center">
+      <a class="btn btn-primary btn-lg" routerLink="/courses" id="about-browse-link">Browse courses</a>
+      <a class="btn btn-lg" routerLink="/contact" id="about-contact-link">Contact us</a>
+    </div>
+  </div>
+</section>

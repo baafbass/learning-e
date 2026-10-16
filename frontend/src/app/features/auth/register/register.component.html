@@ -1,0 +1,174 @@
+<app-auth-shell tagline="Join thousands of learners and instructors on LearnHub.">
+  <h1 class="page-title">Create your account</h1>
+  <p class="muted">
+    Already have an account? <a routerLink="/login" id="register-to-login-link">Log in</a>
+  </p>
+
+  @if (error(); as message) {
+    <div class="alert danger mb" role="alert" id="register-error">
+      <app-icon name="error" /> <span>{{ message }}</span>
+    </div>
+  }
+
+  <form
+    class="form-grid"
+    id="register-form"
+    name="register-form"
+    aria-label="Registration form"
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+  >
+    <fieldset class="roles">
+      <legend class="label">I am joining to…</legend>
+      @for (option of roleOptions; track option.value) {
+        <label class="role-option" [for]="'register-role-' + option.value">
+          <input
+            type="radio"
+            [id]="'register-role-' + option.value"
+            name="role"
+            formControlName="role"
+            [value]="option.value"
+          />
+          <app-icon [name]="option.icon" />
+          <span>
+            <strong>{{ option.title }}</strong>
+            <small>{{ option.description }}</small>
+          </span>
+        </label>
+      }
+    </fieldset>
+
+    <div class="field">
+      <label class="label" for="register-full-name">Full name</label>
+      <input
+        class="input"
+        id="register-full-name"
+        name="full_name"
+        type="text"
+        formControlName="full_name"
+        placeholder="e.g. Ada Lovelace"
+        autocomplete="name"
+        maxlength="120"
+        required
+        aria-describedby="register-full-name-error"
+      />
+      <app-field-error
+        [control]="form.controls.full_name"
+        label="Full name"
+        errorId="register-full-name-error"
+      />
+    </div>
+
+    <div class="field">
+      <label class="label" for="register-email">Email address</label>
+      <input
+        class="input"
+        id="register-email"
+        name="email"
+        type="email"
+        formControlName="email"
+        placeholder="you@example.com"
+        autocomplete="email"
+        inputmode="email"
+        required
+        aria-describedby="register-email-error"
+      />
+      <app-field-error [control]="form.controls.email" label="Email" errorId="register-email-error" />
+    </div>
+
+    <div class="form-grid two-cols">
+      <div class="field">
+        <label class="label" for="register-password">Password</label>
+        <div class="password-field">
+          <input
+            class="input"
+            id="register-password"
+            name="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="At least 8 characters"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="72"
+            required
+            aria-describedby="register-password-hint register-password-error"
+          />
+          <button
+            type="button"
+            class="icon-btn"
+            id="register-toggle-password"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            [title]="showPassword() ? 'Hide password' : 'Show password'"
+            (click)="showPassword.set(!showPassword())"
+          >
+            <app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" />
+          </button>
+        </div>
+        <span class="hint" id="register-password-hint">Use letters and at least one digit.</span>
+        <app-field-error
+          [control]="form.controls.password"
+          label="Password"
+          errorId="register-password-error"
+        />
+      </div>
+
+      <div class="field">
+        <label class="label" for="register-confirm-password">Confirm password</label>
+        <input
+          class="input"
+          id="register-confirm-password"
+          name="confirm_password"
+          [type]="showPassword() ? 'text' : 'password'"
+          formControlName="confirm_password"
+          placeholder="Repeat your password"
+          autocomplete="new-password"
+          required
+          aria-describedby="register-confirm-password-error register-password-mismatch"
+        />
+        <app-field-error
+          [control]="form.controls.confirm_password"
+          label="Password confirmation"
+          errorId="register-confirm-password-error"
+        />
+        @if (form.hasError('mismatch') && form.controls.confirm_password.touched) {
+          <p class="error-text" id="register-password-mismatch" role="alert">
+            <app-icon name="error" [size]="16" />Passwords do not match.
+          </p>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="checkbox" for="register-accept-terms">
+        <input
+          type="checkbox"
+          id="register-accept-terms"
+          name="accept_terms"
+          formControlName="accept_terms"
+          required
+        />
+        <span>
+          I agree to the <a routerLink="/terms" id="register-terms-link">Terms of service</a> and
+          <a routerLink="/privacy" id="register-privacy-link">Privacy policy</a>.
+        </span>
+      </label>
+      @if (form.controls.accept_terms.touched && form.controls.accept_terms.invalid) {
+        <p class="error-text" role="alert">
+          <app-icon name="error" [size]="16" />Please accept the terms to continue.
+        </p>
+      }
+    </div>
+
+    <button
+      type="submit"
+      class="btn btn-primary btn-lg btn-block"
+      id="register-submit"
+      name="register-submit"
+      [disabled]="submitting()"
+    >
+      <app-icon name="person_add" />
+      {{ submitting() ? 'Creating account…' : 'Create account' }}
+    </button>
+  </form>
+</app-auth-shell>

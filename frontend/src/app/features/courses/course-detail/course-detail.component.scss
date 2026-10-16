@@ -1,0 +1,154 @@
+.detail-hero {
+  padding-block: 2.5rem 3rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--gradient-hero);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 2.5rem;
+  align-items: start;
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+}
+
+.lead {
+  max-width: 680px;
+  font-size: 1.08rem;
+  color: var(--color-text-muted);
+}
+
+.instructor-line {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+.enroll-card {
+  position: sticky;
+  top: calc(var(--navbar-height) + 1.25rem);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .price {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+}
+
+.enrolled-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .badge {
+    align-self: flex-start;
+  }
+}
+
+.body-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 2.5rem;
+  padding-block: 2.5rem 4rem;
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+
+  h2 {
+    font-size: 1.3rem;
+  }
+}
+
+.outcomes {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.section-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.lesson-list {
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+
+  a,
+  div {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 0.9rem;
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+  }
+
+  a:hover {
+    background: var(--color-surface-2);
+    text-decoration: none;
+  }
+
+  li + li {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .grow {
+    flex: 1;
+  }
+
+  .state {
+    display: inline-flex;
+    color: var(--color-text-muted);
+
+    &.done {
+      color: var(--color-success);
+    }
+  }
+}
+
+.description {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.instructor-card h2 {
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}

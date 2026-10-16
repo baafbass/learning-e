@@ -1,0 +1,79 @@
+<app-page-header eyebrow="Administration" title="Messages" subtitle="Messages sent through the contact form." />
+
+<div class="tabs mb" role="tablist" aria-label="Filter messages">
+  @for (filter of filters; track filter.id) {
+    <button
+      type="button"
+      class="tab"
+      role="tab"
+      [id]="'messages-tab-' + filter.id"
+      aria-controls="messages-panel"
+      [attr.aria-selected]="activeFilter() === filter.id"
+      (click)="setFilter(filter)"
+    >
+      {{ filter.label }}
+    </button>
+  }
+</div>
+
+<section id="messages-panel" role="tabpanel" [attr.aria-labelledby]="'messages-tab-' + activeFilter()">
+  @if (loading() && !result()) {
+    <app-loading label="Loading messages…" />
+  } @else if (result(); as page) {
+    <div class="messages">
+      @for (message of page.items; track message.id) {
+        <article class="card message" [class.unread]="!message.is_read" [id]="'message-' + message.id">
+          <header>
+            <div>
+              <h2>
+                @if (!message.is_read) {
+                  <span class="dot" title="Unread" aria-label="Unread"></span>
+                }
+                {{ message.subject }}
+              </h2>
+              <p class="muted text-sm mb-0">
+                From <strong>{{ message.name }}</strong> &lt;{{ message.email }}&gt; ·
+                {{ message.created_at | date: 'medium' }}
+              </p>
+            </div>
+            <div class="actions">
+              <a
+                class="icon-btn"
+                [href]="'mailto:' + message.email + '?subject=Re: ' + message.subject"
+                [id]="'reply-message-' + message.id"
+                title="Reply by email"
+                [attr.aria-label]="'Reply to ' + message.name"
+              >
+                <app-icon name="reply" />
+              </a>
+              <button
+                type="button"
+                class="icon-btn"
+                [id]="'toggle-read-' + message.id"
+                [title]="message.is_read ? 'Mark as unread' : 'Mark as read'"
+                [attr.aria-label]="message.is_read ? 'Mark as unread' : 'Mark as read'"
+                (click)="toggleRead(message)"
+              >
+                <app-icon [name]="message.is_read ? 'mark_email_unread' : 'mark_email_read'" />
+              </button>
+              <button
+                type="button"
+                class="icon-btn danger"
+                [id]="'delete-message-' + message.id"
+                title="Delete message"
+                aria-label="Delete message"
+                (click)="remove(message)"
+              >
+                <app-icon name="delete" />
+              </button>
+            </div>
+          </header>
+          <p class="body">{{ message.message }}</p>
+        </article>
+      } @empty {
+        <app-empty-state icon="inbox" title="No messages" message="New contact messages will appear here." />
+      }
+    </div>
+    <app-pagination [page]="page.page" [pages]="page.pages" (pageChange)="changePage($event)" />
+  }
+</section>

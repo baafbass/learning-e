@@ -1,0 +1,198 @@
+@if (loading()) {
+  <app-loading label="Loading course…" />
+} @else if (course(); as course) {
+  <section class="detail-hero" aria-labelledby="course-title">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a routerLink="/courses" id="breadcrumb-courses">Courses</a>
+          <app-icon name="chevron_right" [size]="18" />
+          <a
+            routerLink="/courses"
+            [queryParams]="{ category_id: course.category.id }"
+            id="breadcrumb-category"
+            >{{ course.category.name }}</a
+          >
+        </nav>
+        <div class="flex wrap gap-sm mb">
+          <span class="badge primary"><app-icon [name]="course.category.icon" /> {{ course.category.name }}</span>
+          <span class="badge">{{ course.level | titlecase }}</span>
+          @if (!course.is_published) {
+            <span class="badge warning"><app-icon name="edit_note" /> Draft — only you can see this</span>
+          }
+        </div>
+        <h1 id="course-title">{{ course.title }}</h1>
+        <p class="lead">{{ course.summary }}</p>
+        <ul class="meta-list" aria-label="Course facts">
+          <li><app-icon name="menu_book" /> {{ course.lesson_count }} lessons</li>
+          <li><app-icon name="schedule" /> {{ course.duration_hours }} hours</li>
+          <li><app-icon name="group" /> {{ course.enrollment_count }} students</li>
+          <li><app-icon name="update" /> Updated {{ course.updated_at | date: 'mediumDate' }}</li>
+        </ul>
+        <div class="instructor-line">
+          <app-avatar [name]="course.instructor.full_name" [url]="course.instructor.avatar_url" size="sm" />
+          <span>Created by <strong>{{ course.instructor.full_name }}</strong></span>
+        </div>
+      </div>
+
+      <aside class="enroll-card card" aria-label="Enrollment">
+        <app-course-cover
+          [courseId]="course.id"
+          [title]="course.title"
+          [icon]="course.category.icon"
+          [imageUrl]="course.thumbnail_url"
+        />
+        <div class="card-body">
+          <p class="price">{{ course.price | price }}</p>
+
+          @if (enrollment(); as enrollment) {
+            <div class="enrolled-status">
+              <span class="badge" [class.success]="enrollment.status === 'completed'" [class.primary]="enrollment.status !== 'completed'">
+                {{ enrollment.status | statusLabel }}
+              </span>
+              <app-progress-bar [value]="enrollment.progress" label="Your progress in this course" />
+            </div>
+            @if (resumeLessonId(); as lessonId) {
+              <a
+                class="btn btn-primary btn-lg btn-block"
+                id="continue-learning-link"
+                [routerLink]="['/courses', course.id, 'learn', lessonId]"
+              >
+                <app-icon name="play_circle" />
+                {{ enrollment.progress === 0 ? 'Start learning' : enrollment.status === 'completed' ? 'Review course' : 'Continue learning' }}
+              </a>
+            }
+            <button
+              type="button"
+              class="btn btn-ghost btn-block"
+              id="unenroll-button"
+              name="unenroll"
+              (click)="unenroll()"
+            >
+              <app-icon name="logout" /> Unenroll
+            </button>
+          } @else if (canManage()) {
+            <a
+              class="btn btn-primary btn-lg btn-block"
+              id="manage-course-link"
+              [routerLink]="['/teach/courses', course.id, 'edit']"
+            >
+              <app-icon name="edit" /> Manage course
+            </a>
+            <a
+              class="btn btn-block"
+              id="gradebook-link"
+              [routerLink]="['/teach/courses', course.id, 'gradebook']"
+            >
+              <app-icon name="grading" /> Open gradebook
+            </a>
+            @if (course.lessons.length) {
+              <a
+                class="btn btn-ghost btn-block"
+                id="preview-lessons-link"
+                [routerLink]="['/courses', course.id, 'learn', course.lessons[0].id]"
+              >
+                <app-icon name="visibility" /> Preview lessons
+              </a>
+            }
+          } @else if (auth.isLoggedIn() && !auth.isStudent()) {
+            <p class="hint">Only student accounts can enroll in courses.</p>
+          } @else {
+            <button
+              type="button"
+              class="btn btn-gradient btn-lg btn-block"
+              id="enroll-button"
+              name="enroll"
+              [disabled]="busy()"
+              (click)="enroll()"
+            >
+              <app-icon name="school" />
+              {{ auth.isLoggedIn() ? (busy() ? 'Enrolling…' : 'Enroll now') : 'Log in to enroll' }}
+            </button>
+            <p class="hint text-center mb-0">Full lifetime access · Learn at your own pace</p>
+          }
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <div class="container body-grid">
+    <div class="main-column">
+      @if (course.outcomes.length) {
+        <section class="card card-body" aria-labelledby="outcomes-title">
+          <h2 id="outcomes-title">What you'll learn</h2>
+          <ul class="check-list outcomes">
+            @for (outcome of course.outcomes; track $index) {
+              <li><app-icon name="check_circle" /> {{ outcome }}</li>
+            }
+          </ul>
+        </section>
+      }
+
+      <section aria-labelledby="curriculum-title">
+        <div class="section-title">
+          <h2 id="curriculum-title">Course content</h2>
+          <span class="muted text-sm">
+            {{ course.lessons.length }} lessons · {{ totalMinutes() }} min total
+          </span>
+        </div>
+        @if (course.lessons.length) {
+          <ol class="lesson-list card">
+            @for (lesson of course.lessons; track lesson.id; let index = $index) {
+              <li>
+                @if (enrollment() || canManage()) {
+                  <a [routerLink]="['/courses', course.id, 'learn', lesson.id]" [id]="'outline-lesson-' + lesson.id">
+                    <span class="state" [class.done]="completedIds().has(lesson.id)">
+                      <app-icon [name]="completedIds().has(lesson.id) ? 'check_circle' : 'play_circle'" [filled]="completedIds().has(lesson.id)" />
+                    </span>
+                    <span class="grow">{{ index + 1 }}. {{ lesson.title }}</span>
+                    <span class="muted text-sm">{{ lesson.duration_minutes }} min</span>
+                  </a>
+                } @else {
+                  <div [id]="'outline-lesson-' + lesson.id">
+                    <span class="state"><app-icon name="lock" /></span>
+                    <span class="grow">{{ index + 1 }}. {{ lesson.title }}</span>
+                    <span class="muted text-sm">{{ lesson.duration_minutes }} min</span>
+                  </div>
+                }
+              </li>
+            }
+          </ol>
+        } @else {
+          <app-empty-state icon="hourglass_empty" title="Lessons coming soon" message="The instructor has not published lessons yet." />
+        }
+      </section>
+
+      <section class="card card-body" aria-labelledby="description-title">
+        <h2 id="description-title">Description</h2>
+        <p class="description">{{ course.description }}</p>
+      </section>
+    </div>
+
+    <aside class="side-column">
+      <section class="card card-body instructor-card" aria-labelledby="instructor-title">
+        <h2 id="instructor-title">Your instructor</h2>
+        <div class="flex items-center gap">
+          <app-avatar [name]="course.instructor.full_name" [url]="course.instructor.avatar_url" size="lg" />
+          <div>
+            <strong>{{ course.instructor.full_name }}</strong>
+            <p class="muted text-sm mb-0">{{ course.category.name }} instructor</p>
+          </div>
+        </div>
+        @if (course.instructor.bio) {
+          <p class="muted mt mb-0">{{ course.instructor.bio }}</p>
+        }
+      </section>
+    </aside>
+  </div>
+} @else {
+  <div class="container page">
+    <app-empty-state
+      icon="search_off"
+      title="Course not found"
+      message="This course does not exist or is not published yet."
+    >
+      <a class="btn btn-primary" routerLink="/courses" id="not-found-browse-link">Browse courses</a>
+    </app-empty-state>
+  </div>
+}

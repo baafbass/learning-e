@@ -1,0 +1,218 @@
+@if (loading()) {
+  <app-loading label="Loading gradebook…" />
+} @else {
+  <app-page-header eyebrow="Gradebook" [title]="course()?.title ?? 'Course'" subtitle="Follow student progress and record grades.">
+    <a class="btn" routerLink="/teach" id="gradebook-back-link"><app-icon name="arrow_back" /> Back</a>
+    @if (course(); as current) {
+      <a class="btn" [routerLink]="['/teach/courses', current.id, 'edit']" id="gradebook-edit-link">
+        <app-icon name="edit" /> Edit course
+      </a>
+    }
+  </app-page-header>
+
+  @let stats = summary();
+  <div class="grid grid-stats mb">
+    <app-stat-card icon="groups" label="Enrolled students" [value]="stats.enrolled" />
+    <app-stat-card icon="task_alt" label="Completed" [value]="stats.completed" tone="success" />
+    <app-stat-card
+      icon="trending_up"
+      label="Average progress"
+      [value]="stats.averageProgress !== null ? stats.averageProgress + '%' : '—'"
+      tone="warning"
+    />
+    <app-stat-card
+      icon="grade"
+      label="Average grade"
+      [value]="stats.averageGrade !== null ? stats.averageGrade + '%' : '—'"
+      tone="accent"
+    />
+  </div>
+
+  <div class="toolbar" role="search">
+    <div class="input-icon grow">
+      <app-icon name="search" />
+      <label class="visually-hidden" for="gradebook-search">Search students</label>
+      <input
+        class="input"
+        id="gradebook-search"
+        name="gradebook-search"
+        type="search"
+        placeholder="Search students by name or email…"
+        autocomplete="off"
+        [formControl]="searchControl"
+      />
+    </div>
+  </div>
+
+  @if (filtered().length) {
+    <div class="table-wrapper">
+      <table class="table" id="gradebook-table">
+        <caption class="visually-hidden">Students enrolled in {{ course()?.title }}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Student</th>
+            <th scope="col">Status</th>
+            <th scope="col">Progress</th>
+            <th scope="col">Grades</th>
+            <th scope="col">Average</th>
+            <th scope="col" class="numeric">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of filtered(); track entry.id) {
+            <tr [id]="'gradebook-row-' + entry.id">
+              <td>
+                <div class="cell-main">
+                  <app-avatar [name]="entry.student.full_name" [url]="entry.student.avatar_url" size="sm" />
+                  <div>
+                    <strong>{{ entry.student.full_name }}</strong>
+                    <small>{{ entry.student.email }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge" [class.success]="entry.status === 'completed'" [class.warning]="entry.status === 'in_progress'">
+                  {{ entry.status | statusLabel }}
+                </span>
+              </td>
+              <td><app-progress-bar [value]="entry.progress" [label]="entry.student.full_name + ' progress'" /></td>
+              <td>
+                <div class="grade-chips">
+                  @for (grade of entry.grades; track grade.id) {
+                    <button
+                      type="button"
+                      class="grade-chip"
+                      [id]="'grade-chip-' + grade.id"
+                      [title]="'Edit ' + grade.title + ': ' + grade.score + '/' + grade.max_score"
+                      (click)="openGradeDialog(entry, grade)"
+                    >
+                      {{ grade.title }} · {{ grade.percentage }}%
+                    </button>
+                  } @empty {
+                    <span class="muted text-sm">No grades yet</span>
+                  }
+                </div>
+              </td>
+              <td>
+                @if (entry.letter_grade) {
+                  <span class="grade-pill grade-{{ entry.letter_grade | lowercase }}" [title]="entry.average_score + '%'">
+                    {{ entry.letter_grade }}
+                  </span>
+                  <span class="muted text-sm"> {{ entry.average_score }}%</span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td>
+                <div class="actions">
+                  <button
+                    type="button"
+                    class="btn btn-soft btn-sm"
+                    [id]="'add-grade-' + entry.id"
+                    [attr.aria-label]="'Add a grade for ' + entry.student.full_name"
+                    (click)="openGradeDialog(entry)"
+                  >
+                    <app-icon name="add" /> Grade
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <app-empty-state
+      icon="group_off"
+      [title]="entries().length ? 'No matching students' : 'No students enrolled yet'"
+      message="Students appear here as soon as they enroll in this course."
+    />
+  }
+}
+
+<dialog #gradeDialog class="modal" id="grade-dialog" aria-labelledby="grade-dialog-title">
+  <header class="modal-header">
+    <h2 id="grade-dialog-title">
+      {{ editingGrade() ? 'Edit grade' : 'Add grade' }}
+      @if (activeEntry(); as entry) {
+        <small class="muted"> · {{ entry.student.full_name }}</small>
+      }
+    </h2>
+    <button type="button" class="icon-btn" id="grade-dialog-close" title="Close" aria-label="Close dialog" (click)="closeDialog()">
+      <app-icon name="close" />
+    </button>
+  </header>
+  <form class="modal-body form-grid" id="grade-form" name="grade-form" [formGroup]="form" (ngSubmit)="saveGrade()" novalidate>
+    <div class="field">
+      <label class="label" for="grade-title">Assessment</label>
+      <input
+        class="input"
+        id="grade-title"
+        name="title"
+        type="text"
+        formControlName="title"
+        placeholder="e.g. Quiz 1, Final project"
+        maxlength="120"
+        required
+      />
+      <app-field-error [control]="form.controls.title" label="Assessment" />
+    </div>
+    <div class="form-grid two-cols">
+      <div class="field">
+        <label class="label" for="grade-score">Score</label>
+        <input
+          class="input"
+          id="grade-score"
+          name="score"
+          type="number"
+          formControlName="score"
+          min="0"
+          step="0.5"
+          placeholder="e.g. 85"
+          inputmode="decimal"
+          required
+        />
+        <app-field-error [control]="form.controls.score" label="Score" />
+      </div>
+      <div class="field">
+        <label class="label" for="grade-max-score">Maximum score</label>
+        <input
+          class="input"
+          id="grade-max-score"
+          name="max_score"
+          type="number"
+          formControlName="max_score"
+          min="1"
+          step="0.5"
+          placeholder="100"
+          inputmode="decimal"
+          required
+        />
+        <app-field-error [control]="form.controls.max_score" label="Maximum score" />
+      </div>
+    </div>
+    <div class="field">
+      <label class="label" for="grade-feedback">Feedback <span class="optional">(optional)</span></label>
+      <textarea
+        class="textarea"
+        id="grade-feedback"
+        name="feedback"
+        formControlName="feedback"
+        rows="4"
+        maxlength="2000"
+        placeholder="Personal feedback for the student…"
+      ></textarea>
+    </div>
+    <div class="form-actions">
+      @if (editingGrade()) {
+        <button type="button" class="btn btn-ghost delete" id="grade-delete" name="grade-delete" (click)="deleteGrade()">
+          <app-icon name="delete" /> Delete
+        </button>
+      }
+      <button type="button" class="btn" id="grade-cancel" name="grade-cancel" (click)="closeDialog()">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="grade-save" name="grade-save" [disabled]="saving()">
+        <app-icon name="save" /> {{ saving() ? 'Saving…' : 'Save grade' }}
+      </button>
+    </div>
+  </form>
+</dialog>

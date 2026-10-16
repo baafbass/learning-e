@@ -1,0 +1,125 @@
+<header class="navbar" id="site-header" role="banner">
+  <div class="container inner">
+    <a class="brand" routerLink="/" id="brand-link" title="LearnHub home" aria-label="LearnHub home">
+      <span class="logo-mark" aria-hidden="true"><app-icon name="school" [filled]="true" /></span>
+      <span class="brand-name">Learn<span class="text-gradient">Hub</span></span>
+    </a>
+
+    <nav
+      id="primary-navigation"
+      class="primary-nav"
+      [class.open]="mobileOpen()"
+      aria-label="Primary navigation"
+    >
+      <ul>
+        @for (link of links(); track link.path) {
+          <li>
+            <a
+              [id]="'nav-link-' + link.id"
+              [routerLink]="link.path"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              [routerLinkActiveOptions]="{ exact: link.exact ?? false }"
+            >
+              <app-icon [name]="link.icon" class="mobile-only" />
+              {{ link.label }}
+            </a>
+          </li>
+        }
+      </ul>
+
+      @if (!auth.isLoggedIn()) {
+        <div class="mobile-auth mobile-only">
+          <a class="btn btn-block" routerLink="/login" id="mobile-login-link">Log in</a>
+          <a class="btn btn-primary btn-block" routerLink="/register" id="mobile-register-link">
+            Get started
+          </a>
+        </div>
+      }
+    </nav>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="icon-btn"
+        id="theme-toggle"
+        name="theme-toggle"
+        [title]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+        [attr.aria-label]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+        (click)="theme.toggle()"
+      >
+        <app-icon [name]="theme.theme() === 'dark' ? 'light_mode' : 'dark_mode'" />
+      </button>
+
+      @if (auth.user(); as user) {
+        <div class="user-menu">
+          <button
+            type="button"
+            class="user-button"
+            id="user-menu-button"
+            name="user-menu-button"
+            aria-haspopup="menu"
+            aria-controls="user-menu"
+            [attr.aria-expanded]="userMenuOpen()"
+            title="Open account menu"
+            (click)="toggleUserMenu()"
+          >
+            <app-avatar [name]="user.full_name" [url]="user.avatar_url" size="sm" />
+            <span class="user-name">{{ user.full_name.split(' ')[0] }}</span>
+            <app-icon name="expand_more" />
+          </button>
+
+          @if (userMenuOpen()) {
+            <div class="dropdown" id="user-menu" role="menu" aria-labelledby="user-menu-button">
+              <div class="dropdown-header">
+                <strong>{{ user.full_name }}</strong>
+                <small>{{ user.email }}</small>
+                <span class="badge primary role">{{ user.role }}</span>
+              </div>
+              @if (dashboardLink(); as dashboard) {
+                <a role="menuitem" id="menu-dashboard-link" [routerLink]="dashboard.path">
+                  <app-icon [name]="dashboard.icon" /> {{ dashboard.label }}
+                </a>
+              }
+              <a role="menuitem" id="menu-profile-link" routerLink="/profile">
+                <app-icon name="person" /> Profile
+              </a>
+              <a role="menuitem" id="menu-catalog-link" routerLink="/courses">
+                <app-icon name="explore" /> Browse courses
+              </a>
+              <button
+                type="button"
+                role="menuitem"
+                id="menu-logout-button"
+                name="logout"
+                class="logout"
+                (click)="logout()"
+              >
+                <app-icon name="logout" /> Log out
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a class="btn btn-ghost desktop-only" routerLink="/login" id="login-link">Log in</a>
+        <a class="btn btn-primary desktop-only" routerLink="/register" id="register-link">
+          Get started
+        </a>
+      }
+
+      <button
+        type="button"
+        class="icon-btn mobile-only"
+        id="mobile-menu-toggle"
+        name="mobile-menu-toggle"
+        aria-controls="primary-navigation"
+        [attr.aria-expanded]="mobileOpen()"
+        [attr.aria-label]="mobileOpen() ? 'Close menu' : 'Open menu'"
+        [title]="mobileOpen() ? 'Close menu' : 'Open menu'"
+        (click)="toggleMobile()"
+      >
+        <app-icon [name]="mobileOpen() ? 'close' : 'menu'" />
+      </button>
+    </div>
+  </div>
+</header>

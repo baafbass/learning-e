@@ -1,0 +1,88 @@
+<a class="btn btn-ghost btn-sm back" routerLink=".." id="student-back-link">
+  <app-icon name="arrow_back" /> All students
+</a>
+
+@if (loading()) {
+  <app-loading label="Loading student…" />
+} @else if (student(); as student) {
+  <section class="card card-body profile" aria-labelledby="student-name">
+    <app-avatar [name]="student.full_name" [url]="student.avatar_url" size="lg" />
+    <div class="grow">
+      <h1 id="student-name">{{ student.full_name }}</h1>
+      <p class="muted mb-0">
+        <a [href]="'mailto:' + student.email" id="student-email-link">{{ student.email }}</a>
+        · Joined {{ student.created_at | date: 'longDate' }}
+      </p>
+      @if (student.bio) {
+        <p class="mt mb-0">{{ student.bio }}</p>
+      }
+    </div>
+    <span class="badge" [class.success]="student.is_active" [class.danger]="!student.is_active">
+      {{ student.is_active ? 'Active' : 'Inactive' }}
+    </span>
+  </section>
+
+  <div class="grid grid-stats mb">
+    <app-stat-card icon="library_books" label="Enrollments" [value]="student.enrollment_count" />
+    <app-stat-card icon="task_alt" label="Completed courses" [value]="student.completed_count" tone="success" />
+    <app-stat-card
+      icon="grade"
+      label="Average grade"
+      [value]="student.average_score !== null ? student.average_score + '%' : '—'"
+      tone="accent"
+    />
+  </div>
+
+  <h2 class="section-heading">Courses</h2>
+  <div class="enrollments">
+    @for (enrollment of student.enrollments; track enrollment.id) {
+      <article class="card card-body enrollment" [id]="'student-enrollment-' + enrollment.id">
+        <header class="flex justify-between items-center wrap gap-sm">
+          <h3 class="mb-0">
+            <a [routerLink]="['/courses', enrollment.course.id]">{{ enrollment.course.title }}</a>
+          </h3>
+          <span class="badge" [class.success]="enrollment.status === 'completed'" [class.warning]="enrollment.status === 'in_progress'">
+            {{ enrollment.status | statusLabel }}
+          </span>
+        </header>
+        <p class="muted text-sm">
+          Enrolled {{ enrollment.enrolled_at | date: 'mediumDate' }}
+          @if (enrollment.completed_at) {
+            · Completed {{ enrollment.completed_at | date: 'mediumDate' }}
+          }
+        </p>
+        <app-progress-bar [value]="enrollment.progress" [label]="enrollment.course.title + ' progress'" />
+
+        @if (enrollment.grades.length) {
+          <table class="table grades">
+            <caption class="visually-hidden">Grades for {{ enrollment.course.title }}</caption>
+            <thead>
+              <tr>
+                <th scope="col">Assessment</th>
+                <th scope="col">Score</th>
+                <th scope="col">Grade</th>
+                <th scope="col">Feedback</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (grade of enrollment.grades; track grade.id) {
+                <tr>
+                  <td>{{ grade.title }}</td>
+                  <td class="nowrap">{{ grade.score }} / {{ grade.max_score }} ({{ grade.percentage }}%)</td>
+                  <td><span class="grade-pill grade-{{ grade.letter | lowercase }}">{{ grade.letter }}</span></td>
+                  <td class="muted">{{ grade.feedback ?? '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="muted text-sm mb-0 mt">No grades recorded yet.</p>
+        }
+      </article>
+    } @empty {
+      <app-empty-state icon="school" title="No enrollments" message="This student has not enrolled in any of these courses yet." />
+    }
+  </div>
+} @else {
+  <app-empty-state icon="person_off" title="Student not found" message="This student does not exist or is not visible to you." />
+}

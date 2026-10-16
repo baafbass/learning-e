@@ -1,0 +1,160 @@
+<section class="card lessons" aria-labelledby="lessons-title">
+  <header class="card-header">
+    <div>
+      <h2 id="lessons-title">Lessons</h2>
+      <span class="muted text-sm">{{ lessons().length }} {{ lessons().length === 1 ? 'lesson' : 'lessons' }}, ordered by position</span>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" id="add-lesson-button" name="add-lesson" (click)="openCreate()">
+      <app-icon name="add" /> Add lesson
+    </button>
+  </header>
+
+  @if (lessons().length) {
+    <ol class="lesson-rows">
+      @for (lesson of lessons(); track lesson.id) {
+        <li [id]="'lesson-row-' + lesson.id">
+          <span class="position" title="Position">{{ lesson.position }}</span>
+          <span class="grow">
+            <strong>{{ lesson.title }}</strong>
+            <small class="muted">{{ lesson.duration_minutes }} minutes</small>
+          </span>
+          <button
+            type="button"
+            class="icon-btn"
+            [id]="'edit-lesson-' + lesson.id"
+            title="Edit lesson"
+            [attr.aria-label]="'Edit lesson ' + lesson.title"
+            (click)="openEdit(lesson)"
+          >
+            <app-icon name="edit" />
+          </button>
+          <button
+            type="button"
+            class="icon-btn danger"
+            [id]="'delete-lesson-' + lesson.id"
+            title="Delete lesson"
+            [attr.aria-label]="'Delete lesson ' + lesson.title"
+            (click)="remove(lesson)"
+          >
+            <app-icon name="delete" />
+          </button>
+        </li>
+      }
+    </ol>
+  } @else {
+    <div class="card-body">
+      <app-empty-state
+        icon="playlist_add"
+        title="No lessons yet"
+        message="Add the first lesson so students can start learning."
+      />
+    </div>
+  }
+</section>
+
+<dialog
+  #lessonDialog
+  class="modal lesson-modal"
+  id="lesson-dialog"
+  aria-labelledby="lesson-dialog-title"
+>
+  <header class="modal-header">
+    <h2 id="lesson-dialog-title">{{ editingId() ? 'Edit lesson' : 'New lesson' }}</h2>
+    <button type="button" class="icon-btn" id="lesson-dialog-close" title="Close" aria-label="Close dialog" (click)="close()">
+      <app-icon name="close" />
+    </button>
+  </header>
+  <form
+    class="modal-body form-grid"
+    id="lesson-form"
+    name="lesson-form"
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    novalidate
+  >
+    <div class="field">
+      <label class="label" for="lesson-title">Title</label>
+      <input
+        class="input"
+        id="lesson-title"
+        name="title"
+        type="text"
+        formControlName="title"
+        placeholder="e.g. Routing and lazy loading"
+        maxlength="200"
+        required
+      />
+      <app-field-error [control]="form.controls.title" label="Title" />
+    </div>
+
+    <div class="form-grid two-cols">
+      <div class="field">
+        <label class="label" for="lesson-position">Position</label>
+        <input
+          class="input"
+          id="lesson-position"
+          name="position"
+          type="number"
+          formControlName="position"
+          min="1"
+          max="1000"
+          step="1"
+          placeholder="1"
+        />
+        <app-field-error [control]="form.controls.position" label="Position" />
+      </div>
+      <div class="field">
+        <label class="label" for="lesson-duration">Duration (minutes)</label>
+        <input
+          class="input"
+          id="lesson-duration"
+          name="duration_minutes"
+          type="number"
+          formControlName="duration_minutes"
+          min="0"
+          max="600"
+          step="1"
+          placeholder="10"
+        />
+        <app-field-error [control]="form.controls.duration_minutes" label="Duration" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label" for="lesson-video-url">
+        Video URL <span class="optional">(YouTube or Vimeo, optional)</span>
+      </label>
+      <input
+        class="input"
+        id="lesson-video-url"
+        name="video_url"
+        type="url"
+        formControlName="video_url"
+        placeholder="https://www.youtube.com/watch?v=…"
+        maxlength="500"
+      />
+      <app-field-error [control]="form.controls.video_url" label="Video URL" />
+    </div>
+
+    <div class="field">
+      <label class="label" for="lesson-content">Content</label>
+      <textarea
+        class="textarea"
+        id="lesson-content"
+        name="content"
+        formControlName="content"
+        rows="8"
+        placeholder="Write the lesson text. Blank lines start new paragraphs."
+        required
+      ></textarea>
+      <app-field-error [control]="form.controls.content" label="Content" />
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn" id="lesson-cancel" name="lesson-cancel" (click)="close()">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="lesson-save" name="lesson-save" [disabled]="saving()">
+        <app-icon name="save" /> {{ saving() ? 'Saving…' : 'Save lesson' }}
+      </button>
+    </div>
+  </form>
+</dialog>

@@ -1,0 +1,70 @@
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --color-bg: #f6f7fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1f3f9;
+  --color-border: #e3e6ef;
+  --color-text: #0f172a;
+  --color-text-muted: #5b6478;
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-soft: #eef0ff;
+  --color-on-primary: #ffffff;
+  --color-accent: #0891b2;
+  --color-success: #047857;
+  --color-success-soft: #e7f8f1;
+  --color-warning: #b45309;
+  --color-warning-soft: #fff6e5;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fdeeee;
+  --color-overlay: rgb(15 23 42 / 55%);
+
+  --gradient-brand: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0891b2 100%);
+  --gradient-hero:
+    radial-gradient(circle at 15% 20%, rgb(124 58 237 / 18%), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgb(8 145 178 / 16%), transparent 40%),
+    radial-gradient(circle at 70% 90%, rgb(79 70 229 / 14%), transparent 45%);
+
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 6%);
+  --shadow-md: 0 6px 20px -6px rgb(15 23 42 / 14%);
+  --shadow-lg: 0 24px 48px -16px rgb(15 23 42 / 22%);
+
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+
+  --navbar-height: 68px;
+  --container-width: 1200px;
+  --transition: 160ms ease;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --color-bg: #0b1020;
+  --color-surface: #121831;
+  --color-surface-2: #1a2140;
+  --color-border: #273055;
+  --color-text: #e7eaf6;
+  --color-text-muted: #9aa3c4;
+  --color-primary: #8b93fb;
+  --color-primary-hover: #a5acfc;
+  --color-primary-soft: rgb(139 147 251 / 14%);
+  --color-on-primary: #0b1020;
+  --color-accent: #22d3ee;
+  --color-success: #34d399;
+  --color-success-soft: rgb(52 211 153 / 12%);
+  --color-warning: #fbbf24;
+  --color-warning-soft: rgb(251 191 36 / 12%);
+  --color-danger: #f87171;
+  --color-danger-soft: rgb(248 113 113 / 12%);
+  --color-overlay: rgb(2 6 23 / 70%);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-md: 0 8px 24px -8px rgb(0 0 0 / 55%);
+  --shadow-lg: 0 24px 48px -16px rgb(0 0 0 / 65%);
+
+  color-scheme: dark;
+}

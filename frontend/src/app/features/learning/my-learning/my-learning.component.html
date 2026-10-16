@@ -1,0 +1,131 @@
+<div class="container page">
+  <app-page-header
+    eyebrow="My learning"
+    [title]="'Welcome back, ' + firstName() + '!'"
+    subtitle="Pick up where you left off and keep an eye on your grades."
+  >
+    <a class="btn btn-primary" routerLink="/courses" id="find-courses-link">
+      <app-icon name="explore" /> Find new courses
+    </a>
+  </app-page-header>
+
+  <div class="grid grid-stats mb">
+    <app-stat-card icon="library_books" label="Enrolled courses" [value]="enrollments().length" />
+    <app-stat-card icon="pending" label="In progress" [value]="inProgress().length" tone="warning" />
+    <app-stat-card icon="task_alt" label="Completed" [value]="completed().length" tone="success" />
+    <app-stat-card
+      icon="grade"
+      label="Average grade"
+      [value]="averageGrade() !== null ? averageGrade() + '%' : '—'"
+      tone="accent"
+    />
+  </div>
+
+  <div class="tabs mb" role="tablist" aria-label="Filter my courses">
+    @for (tab of tabs(); track tab.id) {
+      <button
+        type="button"
+        class="tab"
+        role="tab"
+        [id]="'tab-' + tab.id"
+        aria-controls="my-courses-panel"
+        [attr.aria-selected]="activeTab() === tab.id"
+        (click)="activeTab.set(tab.id)"
+      >
+        {{ tab.label }} <span class="count">{{ tab.count }}</span>
+      </button>
+    }
+  </div>
+
+  <section id="my-courses-panel" role="tabpanel" [attr.aria-labelledby]="'tab-' + activeTab()">
+    @if (loading()) {
+      <app-loading label="Loading your courses…" />
+    } @else {
+      <div class="enrollment-list">
+        @for (enrollment of visible(); track enrollment.id) {
+          <article class="enrollment card" [id]="'enrollment-' + enrollment.id">
+            <a class="cover" [routerLink]="['/courses', enrollment.course.id]" tabindex="-1" aria-hidden="true">
+              <app-course-cover
+                [courseId]="enrollment.course.id"
+                [title]="enrollment.course.title"
+                [icon]="enrollment.course.category.icon"
+                [imageUrl]="enrollment.course.thumbnail_url"
+                [iconSize]="40"
+              />
+            </a>
+            <div class="info">
+              <div class="flex wrap gap-sm items-center">
+                <span class="badge" [class.success]="enrollment.status === 'completed'" [class.warning]="enrollment.status === 'in_progress'">
+                  <app-icon [name]="enrollment.status === 'completed' ? 'task_alt' : 'pending'" />
+                  {{ enrollment.status | statusLabel }}
+                </span>
+                <span class="muted text-sm">{{ enrollment.course.category.name }}</span>
+              </div>
+              <h2>
+                <a [routerLink]="['/courses', enrollment.course.id]">{{ enrollment.course.title }}</a>
+              </h2>
+              <p class="muted text-sm mb-0">
+                By {{ enrollment.course.instructor.full_name }} · Enrolled
+                {{ enrollment.enrolled_at | date: 'mediumDate' }}
+                @if (enrollment.completed_at) {
+                  · Completed {{ enrollment.completed_at | date: 'mediumDate' }}
+                }
+              </p>
+              <app-progress-bar [value]="enrollment.progress" [label]="'Progress in ' + enrollment.course.title" />
+
+              @if (enrollment.grades.length) {
+                <details class="grades">
+                  <summary [id]="'grades-toggle-' + enrollment.id">
+                    <app-icon name="grade" /> {{ enrollment.grades.length }}
+                    {{ enrollment.grades.length === 1 ? 'grade' : 'grades' }} · Average
+                    {{ enrollment.average_score }}%
+                    <span class="grade-pill grade-{{ enrollment.letter_grade | lowercase }}">
+                      {{ enrollment.letter_grade }}
+                    </span>
+                  </summary>
+                  <ul>
+                    @for (grade of enrollment.grades; track grade.id) {
+                      <li>
+                        <span class="grade-pill grade-{{ grade.letter | lowercase }}">{{ grade.letter }}</span>
+                        <div>
+                          <strong>{{ grade.title }}</strong>
+                          <span class="muted text-sm">
+                            {{ grade.score }} / {{ grade.max_score }} ({{ grade.percentage }}%)
+                          </span>
+                          @if (grade.feedback) {
+                            <p class="feedback">“{{ grade.feedback }}”</p>
+                          }
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                </details>
+              }
+            </div>
+            <div class="actions">
+              @if (enrollment.next_lesson_id; as lessonId) {
+                <a
+                  class="btn"
+                  [class.btn-primary]="enrollment.status === 'in_progress'"
+                  [id]="'continue-course-' + enrollment.course.id"
+                  [routerLink]="['/courses', enrollment.course.id, 'learn', lessonId]"
+                >
+                  <app-icon [name]="enrollment.status === 'completed' ? 'replay' : 'play_arrow'" />
+                  {{ enrollment.status === 'completed' ? 'Review' : 'Continue' }}
+                </a>
+              }
+            </div>
+          </article>
+        } @empty {
+          <app-empty-state
+            icon="school"
+            [title]="activeTab() === 'completed' ? 'No completed courses yet' : 'No courses here yet'"
+            message="Explore the catalog and enroll in a course to start learning."
+          >
+            <a class="btn btn-primary" routerLink="/courses" id="empty-browse-link">Browse courses</a>
+          </app-empty-state>
+        }
+      </div>
+    }
+  </section>
+</div>
